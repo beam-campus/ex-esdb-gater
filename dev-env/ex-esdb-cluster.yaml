@@ -1,0 +1,102 @@
+services:
+  ex-esdb0:
+    image: local/ex-esdb
+    build:
+      context: ../system
+    hostname: node0
+    profiles:
+      - cluster
+    container_name: ex-esdb0
+    networks:
+      - ex-esdb-net
+    volumes:
+      - ex-esdb0-data:/data
+    stop_grace_period: 10s
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_greenhouse_cookie"
+      EX_ESDB_SEED_NODES: "ex_esdb@node1,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+
+  ex-esdb1:
+    image: local/ex-esdb
+    build:
+      context: ../system
+    hostname: node1
+    container_name: ex-esdb1
+    profiles:
+      - cluster
+    networks:
+      - ex-esdb-net
+    volumes:
+      - ex-esdb1-data:/data
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_greenhouse_cookie"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 10s
+    depends_on:
+      ex-esdb0:
+        condition: service_healthy
+
+  ex-esdb2:
+    image: local/ex-esdb
+    build:
+      context: ../system
+    hostname: node2
+    container_name: ex-esdb2
+    profiles:
+      - cluster
+    networks:
+      - ex-esdb-net
+    volumes:
+      - ex-esdb2-data:/data
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_greenhouse_cookie"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 10s
+    depends_on:
+      ex-esdb1:
+        condition: service_healthy
+
+  ex-esdb3:
+    image: local/ex-esdb
+    build:
+      context: ../system
+    hostname: node3
+    container_name: ex-esdb3
+    profiles:
+      - cluster
+    networks:
+      - ex-esdb-net
+    volumes:
+      - ex-esdb3-data:/data
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_greenhouse_cookie"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node4"
+    stop_grace_period: 10s
+    depends_on:
+      ex-esdb2:
+        condition: service_healthy
+
+  ex-esdb4:
+    image: local/ex-esdb
+    build:
+      context: ../system
+    hostname: node4
+    container_name: ex-esdb4
+    profiles:
+      - cluster
+    networks:
+      - ex-esdb-net
+    volumes:
+      - ex-esdb4-data:/data
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_greenhouse_cookie"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node3"
+    stop_grace_period: 10s
+    depends_on:
+      ex-esdb3:
+        condition: service_healthy

@@ -1,0 +1,35 @@
+volumes:
+  ex-esdb0-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data0
+
+  ex-esdb1-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data1
+
+  ex-esdb2-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data2
+
+  ex-esdb3-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data3
+
+  ex-esdb4-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data4

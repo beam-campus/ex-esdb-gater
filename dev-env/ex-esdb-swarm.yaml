@@ -1,0 +1,137 @@
+networks:
+  esdb-net:
+    name: esdb-net
+    driver: overlay
+
+volumes:
+  esdb0-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data0
+  esdb1-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data1
+  esdb2-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data2
+  esdb3-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data3
+  esdb4-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume/ex-esdb/data4
+
+services:
+  ex-esdb0:
+    image: local/ex-esdb
+    hostname: node0
+    volumes:
+      - esdb0-data:/data
+    networks:
+      - esdb-net
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_gh_clique1"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0"
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        window: 120s
+        max_attempts: 3
+        delay: 10s
+
+  ex-esdb1:
+    image: local/ex-esdb
+    hostname: node1
+    volumes:
+      - esdb1-data:/data
+    networks:
+      - esdb-net
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_gh_clique1"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node2,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        window: 120s
+        max_attempts: 3
+        delay: 10s
+
+  ex-esdb2:
+    image: local/ex-esdb
+    hostname: node2
+    volumes:
+      - esdb2-data:/data
+    networks:
+      - esdb-net
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_gh_clique1"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node3,ex_esdb@node4"
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        window: 120s
+        max_attempts: 3
+        delay: 10s
+
+  ex-esdb3:
+    image: local/ex-esdb
+    hostname: node3
+    volumes:
+      - esdb3-data:/data
+    networks:
+      - esdb-net
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_gh_clique1"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node4"
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        window: 120s
+        max_attempts: 3
+        delay: 10s
+
+  ex-esdb4:
+    image: local/ex-esdb
+    hostname: node4
+    volumes:
+      - esdb4-data:/data
+    networks:
+      - esdb-net
+    environment:
+      EX_ESDB_STORE_ID: "reg_gh"
+      EX_ESDB_COOKIE: "reg_gh_clique1"
+      EX_ESDB_SEED_NODES: "ex_esdb@node0,ex_esdb@node1,ex_esdb@node2,ex_esdb@node3"
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        window: 120s
+        max_attempts: 3
+        delay: 10s
