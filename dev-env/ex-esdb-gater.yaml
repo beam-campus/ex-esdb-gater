@@ -3,7 +3,7 @@ services:
     image: local/ex-esdb-gater
     build:
       context: ../system
-    hostname: node100
+    hostname: gater00
     container_name: ex-esdb-gater
     profiles:
       - gater
