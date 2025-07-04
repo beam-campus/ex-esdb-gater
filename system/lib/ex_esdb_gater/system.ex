@@ -15,6 +15,7 @@ defmodule ExESDBGater.System do
     children =
       [
         {Cluster.Supervisor, [topologies, [name: ExESDBGater.LibCluster]]},
+        {ExESDBGater.ClusterMonitor, opts},
         {Phoenix.PubSub, name: pub_sub},
         {ExESDBGater.API, opts}
       ]

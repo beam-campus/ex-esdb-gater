@@ -31,4 +31,17 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:mfa]
 
+# Reduce Swarm logging noise - only show true errors
+config :swarm,
+  log_level: :error
+
+# Configure specific modules' log levels - only show errors
+config :logger,
+  compile_time_purge_matching: [
+    [module: Swarm.Distribution.Ring, level_lower_than: :error],
+    [module: Swarm.Distribution.Strategy, level_lower_than: :error],
+    [module: Swarm.Registry, level_lower_than: :error],
+    [module: Swarm.Tracker, level_lower_than: :error]
+  ]
+
 import_config "#{Mix.env()}.exs"

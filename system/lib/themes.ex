@@ -10,4 +10,7 @@ defmodule ExESDBGater.Themes do
 
   def api(pid),
     do: "ExESDB API [#{CF.green_on_black()}#{inspect(pid)}#{CF.reset()}]"
+
+  def cluster_monitor(pid),
+    do: "ExESDB API CLUSTER MONITOR [#{CF.cyan_on_black()}#{inspect(pid)}#{CF.reset()}]"
 end
