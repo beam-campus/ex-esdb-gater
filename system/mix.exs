@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.0.17"
+  @version "0.0.1"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -36,6 +36,7 @@ defmodule ExESDBGater.MixProject do
       ex_esdb_gater: [
         include_erts: true,
         include_executables_for: [:unix],
+        runtime_config_path: "config/runtime.exs",
         steps: [:assemble, :tar],
         applications: [
           runtime_tools: :permanent,
@@ -48,7 +49,7 @@ defmodule ExESDBGater.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application,
     do: [
-      mod: {ExESDBGater.APIApp, []},
+      mod: {ExESDBGater.App, []},
       extra_applications:
         [
           :logger,
@@ -86,9 +87,10 @@ defmodule ExESDBGater.MixProject do
       {:ex_doc, "~> 0.37", only: [:dev], runtime: false},
       {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:bc_utils, "~> 0.5.0"},
+      {:bc_utils, "~> 0.6.0"},
       {:swarm, "~> 3.4"},
-      {:partisan, "~> 5.0"}
+      {:phoenix_pubsub, "~> 2.1"},
+      {:libcluster, "~> 3.5"}
     ]
   end
 

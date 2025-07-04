@@ -1,4 +1,4 @@
-defmodule ExESDBGater.APISystem do
+defmodule ExESDBGater.System do
   @moduledoc """
     The APISystem is responsible for starting and supervising the
     APIWorkers.
@@ -9,8 +9,13 @@ defmodule ExESDBGater.APISystem do
 
   @impl Supervisor
   def init(opts) do
+    pub_sub = Keyword.get(opts, :pub_sub)
+    topologies = Application.get_env(:libcluster, :topologies) || []
+
     children =
       [
+        {Cluster.Supervisor, [topologies, [name: ExESDBGater.LibCluster]]},
+        {Phoenix.PubSub, name: pub_sub},
         {ExESDBGater.API, opts}
       ]
 

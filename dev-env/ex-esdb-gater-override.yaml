@@ -1,0 +1,67 @@
+# ExESDGater Docker Compose Override for Gossip MultiCast Clustering
+# Use with: docker-compose -f ex-esdb-gater.yaml -f ex-esdb-gater-cluster.yaml up
+
+services:
+  ex-esdb-gater:
+    # Enhanced environment for cluster operation
+    environment:
+      # Base configuration
+      EX_ESDB_COOKIE: ${REG_GH_CLIQUE}
+      EX_ESDB_CLUSTER_SECRET: ${REG_GH_CLUSTER_SECRET}
+      #      EX_ESDB_GOSSIP_MULTICAST_ADDR: ${REG_GH_GOSSIP_MULTICAST_ADDR}
+
+      # Cluster-specific settings
+      # EX_ESDB_GATER_NODE_NAME: "gater@gater"
+      # EX_ESDB_CLUSTER_MODE: "true"
+
+      # Network and gossip configuration
+      #      GOSSIP_MULTICAST_ADDR: "233.252.1.32"
+      # GOSSIP_PORT: "45892"
+      # GOSSIP_TTL: "1"
+
+      # Logging for cluster debugging
+      LOG_LEVEL: "debug"
+      RUST_LOG: "debug"
+
+    # Expose gossip port for external access
+    # ports:
+    #   - "45893:45892" # Map to different host port to avoid conflicts
+    #   - "4370:4369" # EPMD port
+
+    # Enhanced health check for cluster mode
+    healthcheck:
+      test: ["CMD", "./check-ex-esdb-gater.sh"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Labels for cluster identification
+    labels:
+      - "service=ex-esdb-gater"
+      - "cluster=gossip-multicast"
+      - "role=gateway"
+      - "environment=development"
+
+    # Enhanced logging for cluster debugging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+        labels: "service,cluster,role"
+
+    # Resource limits suitable for gateway role
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.3"
+        reservations:
+          memory: 128M
+          cpus: "0.15"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s

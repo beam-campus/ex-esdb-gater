@@ -237,8 +237,6 @@ defmodule ExESDBGater.API do
   ################## PLUMBING ##################
   def init(opts) do
     IO.puts("#{Themes.api(self())} is UP!")
-    connect_to = connect_to(opts)
-    spawn(fn -> connect_to(connect_to) end)
     {:ok, opts}
   end
 
