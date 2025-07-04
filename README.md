@@ -1,2 +1,2 @@
-# ex-esdb-api
+# ExESDB Gater
 The ExESDB Gateway API
