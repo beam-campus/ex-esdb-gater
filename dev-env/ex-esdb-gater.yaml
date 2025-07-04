@@ -1,0 +1,21 @@
+services:
+  ex-esdb-gater:
+    image: local/ex-esdb-gater
+    build:
+      context: ../system
+    hostname: node100
+    container_name: ex-esdb-gater
+    profiles:
+      - gater
+    networks:
+      - ex-esdb-net
+    environment:
+      RELEASE_COOKIE: ${REG_GH_CLIQUE}
+      EX_ESDB_COOKIE: ${REG_GH_CLIQUE}
+      EX_ESDB_CLUSTER_SECRET: ${REG_GH_CLUSTER_SECRET}
+    stop_grace_period: 10s
+
+networks:
+  ex-esdb-net:
+    external: true
+    name: ex-esdb-net

@@ -1,11 +1,4 @@
 ################# Variables ################
-#ARG ELIXIR_VERSION=1.17.2
-#ARG OTP_VERSION=27.0.1
-#ARG OS_VERSION=bullseye-20240722-slim
-# ARG ELIXIR_VERSION=1.17.3
-# ARG OTP_VERSION=27.1.2
-# ARG OS_VERSION=bullseye-20241111-slim
-# ARG OS_TYPE=debian
 
 ARG ELIXIR_VERSION=1.18.3
 ARG OTP_VERSION=27.3
@@ -52,14 +45,14 @@ COPY mix.exs ./
 # install mix dependencies
 RUN MIX_ENV="prod" mix do deps.get --only "prod", deps.update --all, deps.compile
 # build assets
-RUN MIX_ENV="prod" mix do compile, release ex_esdb
+RUN MIX_ENV="prod" mix do compile, release ex_esdb_gater
 ## Release
 
 ###################################
 ########### RUNTIME ###############
 ###################################
 
-FROM ${RUNNER_IMAGE} AS ex_esdb
+FROM ${RUNNER_IMAGE} AS ex_esdb_gater
 
 ENV HOME=/system
 ENV MIX_ENV="prod"
@@ -68,6 +61,8 @@ ENV PATH="${PATH}"
 ARG EX_ESDB_COOKIE
 ARG EX_ESDB_DATA_DIR
 ARG EX_ESDB_STORE_ID
+ARG EX_ESDB_CLUSTER_SECRET
+
 
 ENV ERTS_VERSION=erts-15.2.3
 
@@ -76,8 +71,8 @@ RUN echo "!!!!!!!! Building runner image...!!!!!!!" && sleep 2
 RUN apt-get update -y && \
   apt-get upgrade -y --autoremove && \
   apt-get clean && \
-  apt-get install -y build-essential pkg-config openssl libncurses5 locales ca-certificates curl systemd htop && \
-  rm -f /var/lib/apt/lists/*_* 
+  apt-get install -y build-essential pkg-config openssl libncurses5 locales ca-certificates curl systemd htop net-tools iproute2 iputils-ping dnsutils && \
+  rm -f /var/lib/apt/lists/*_*
 #
 # Set the locale
 #RUN locale-gen en_US.UTF-8
@@ -93,12 +88,13 @@ RUN mkdir /data
 
 RUN chown -R nobody /data
 
-COPY --from=builder --chown=nobody /build_space/_build/prod/rel/ex_esdb/ ./
+COPY --from=builder --chown=nobody /build_space/_build/prod/rel/ex_esdb_gater/ ./
 
-COPY run-ex-esdb.sh .
-COPY check-ex-esdb.sh .
+COPY run-ex-esdb-gater.sh .
+COPY check-ex-esdb-gater.sh .
+COPY test-cluster-connectivity.sh .
 
-RUN chmod +x run-ex-esdb.sh check-ex-esdb.sh
+RUN chmod +x run-ex-esdb-gater.sh check-ex-esdb-gater.sh test-cluster-connectivity.sh
 
 ENV PATH="${PATH}:/system/${ERTS_VERSION}/bin"
 
@@ -106,12 +102,14 @@ ENV PATH="${PATH}:/system/${ERTS_VERSION}/bin"
 
 VOLUME /data
 
-EXPOSE 4369 9000-9100
+# Expose EPMD (4369), Erlang distribution ports (9000-9100), and Gossip MultiCast port (45892)
+EXPOSE 4369 9000-9100 45892 
 
-RUN echo $EX_ESDB_COOKIE > ~/.erlang.cookie
-RUN chmod 400 ~/.erlang.cookie
+# Erlang cookie will be set at runtime via startup script
+# Note: Cookie must be set at runtime when environment variable is available
+
 
 HEALTHCHECK --interval=10s --timeout=3s \
-  CMD ["./check-ex-esdb.sh"]
+  CMD ["./check-ex-esdb-gater.sh"]
 
-CMD ["./run-ex-esdb.sh"]
+CMD ["./run-ex-esdb-gater.sh"]

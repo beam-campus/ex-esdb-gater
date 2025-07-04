@@ -3,7 +3,7 @@
 docker-compose \
   -f ex-esdb-volumes.yaml \
   -f ex-esdb-network.yaml \
-  -f ex-esdb-cluster.yaml \
-  --profile cluster \
-  -p cluster \
+  -f ex-esdb-gater-cluster.yaml \
+  --profile gater \
+  -p gater \
   down
