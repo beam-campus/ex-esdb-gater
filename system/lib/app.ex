@@ -18,7 +18,7 @@ defmodule ExESDBGater.App do
 
     opts = [strategy: :one_for_one, name: ExESDBGater.Supervisor]
     res = Supervisor.start_link(children, opts)
-    IO.puts("#{Themes.app(self())} is UP!")
+    IO.puts("#{Themes.app(self())} [Gater App] is UP!")
 
     res
   end

@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.0.4"
+  @version "0.0.5"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -120,6 +120,10 @@ defmodule ExESDBGater.MixProject do
         "guides/testing.md": [
           filename: "testing",
           title: "Testing"
+        ],
+        "guides/console.md": [
+          filename: "interactive-console",
+          title: "Interactive Test Console"
         ],
         "../README.md": [
           filename: "readme",

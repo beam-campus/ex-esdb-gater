@@ -114,6 +114,180 @@ config :libcluster,
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
+## Installation
+
+### Docker Installation
+
+ExESDB Gater is available as a Docker image on Docker Hub with automatic versioning based on the `mix.exs` version.
+
+#### Available Tags
+- `beamcampus/ex_esdb_gater:latest` - Latest build from master branch
+- `beamcampus/ex_esdb_gater:0.0.4` - Specific version (current version)
+- `beamcampus/ex_esdb_gater:0.0.x` - Any specific version tag
+
+#### Quick Start
+
+**Single Gateway:**
+```bash
+docker run -d \
+  --name ex-esdb-gater \
+  --network ex-esdb-net \
+  -p 4369:4369 \
+  -p 9000:9000 \
+  -p 45892:45892/udp \
+  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
+  beamcampus/ex_esdb_gater:latest
+```
+
+**Multi-Gateway Setup:**
+```bash
+# Gateway 1
+docker run -d \
+  --name ex-esdb-gater-1 \
+  --network ex-esdb-net \
+  -p 8001:9000 \
+  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
+  beamcampus/ex_esdb_gater:latest
+
+# Gateway 2
+docker run -d \
+  --name ex-esdb-gater-2 \
+  --network ex-esdb-net \
+  -p 8002:9000 \
+  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node2" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
+  beamcampus/ex_esdb_gater:latest
+
+# Gateway 3
+docker run -d \
+  --name ex-esdb-gater-3 \
+  --network ex-esdb-net \
+  -p 8003:9000 \
+  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node3" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
+  beamcampus/ex_esdb_gater:latest
+```
+
+#### Complete Setup with ExESDB
+
+```bash
+# Create network
+docker network create ex-esdb-net
+
+# Start ExESDB cluster (3 nodes)
+docker run -d --name ex-esdb-node1 --network ex-esdb-net \
+  -p 4369:4369 -p 9001:9000 -p 45892:45892/udp \
+  -e EX_ESDB_STORE_ID="cluster-store" \
+  -e EX_ESDB_DB_TYPE="cluster" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -v ex-esdb-node1-data:/data \
+  beamcampus/ex_esdb:latest
+
+docker run -d --name ex-esdb-node2 --network ex-esdb-net \
+  -p 9002:9000 \
+  -e EX_ESDB_STORE_ID="cluster-store" \
+  -e EX_ESDB_DB_TYPE="cluster" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -v ex-esdb-node2-data:/data \
+  beamcampus/ex_esdb:latest
+
+docker run -d --name ex-esdb-node3 --network ex-esdb-net \
+  -p 9003:9000 \
+  -e EX_ESDB_STORE_ID="cluster-store" \
+  -e EX_ESDB_DB_TYPE="cluster" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  -v ex-esdb-node3-data:/data \
+  beamcampus/ex_esdb:latest
+
+# Start ExESDB Gater
+docker run -d --name ex-esdb-gater --network ex-esdb-net \
+  -p 8080:9000 \
+  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
+  -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
+  -e EX_ESDB_COOKIE="your-erlang-cookie" \
+  beamcampus/ex_esdb_gater:latest
+```
+
+#### Docker Compose
+
+For development and testing, use the provided Docker Compose setup:
+
+```bash
+# Clone the repository
+git clone https://github.com/beam-campus/ex-esdb-gater.git
+cd ex-esdb-gater/dev-env
+
+# Start the gateway (requires running ExESDB cluster)
+./start-extended-only.sh
+```
+
+#### Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `EX_ESDB_GATER_CONNECT_TO` | Target ExESDB cluster node | Current node | No |
+| `EX_ESDB_PUB_SUB` | PubSub process name | `:ex_esdb_pubsub` | No |
+| `EX_ESDB_CLUSTER_SECRET` | Cluster authentication secret | - | Yes |
+| `EX_ESDB_COOKIE` | Erlang distribution cookie | - | Yes |
+| `RELEASE_COOKIE` | Release-specific distribution cookie | - | No |
+
+#### Ports
+
+| Port | Protocol | Description |
+|------|----------|-------------|
+| `4369` | TCP | EPMD (Erlang Port Mapper Daemon) |
+| `9000` | TCP | Erlang distribution port |
+| `45892` | UDP | LibCluster gossip multicast |
+
+#### Health Checks
+
+The Docker image includes a built-in health check script:
+
+```bash
+# Check container health
+docker exec ex-esdb-gater ./check-ex-esdb-gater.sh
+
+# View health status
+docker inspect --format='{{.State.Health.Status}}' ex-esdb-gater
+
+# Test cluster connectivity
+docker exec ex-esdb-gater ./test-cluster-connectivity.sh
+```
+
+#### Production Considerations
+
+1. **Load Balancing**: Deploy multiple gateway instances behind a load balancer
+2. **Security**: Use strong, unique values for secrets and cookies
+3. **Monitoring**: Implement external monitoring for gateway and cluster health
+4. **Network Isolation**: Use proper Docker networks for security
+5. **Resource Limits**: Set appropriate CPU and memory limits
+6. **High Availability**: Deploy gateways across multiple availability zones
+
+### Hex Installation
+
+ExESDB Gater is also available as a Hex package for direct integration:
+
+```elixir
+def deps do
+  [
+    {:ex_esdb_gater, "~> 0.0.4"}
+  ]
+end
+```
+
 ### Deployment Scenarios
 
 #### Containerized Deployment

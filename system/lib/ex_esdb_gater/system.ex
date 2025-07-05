@@ -20,9 +20,10 @@ defmodule ExESDBGater.System do
         maybe_add_pubsub(pub_sub),
         {ExESDBGater.API, opts}
       ]
-      |> Enum.filter(& &1)  # Remove nil entries
+      # Remove nil entries
+      |> Enum.filter(& &1)
 
-    IO.puts("#{Themes.system(self())} is UP!")
+    IO.puts("#{Themes.system(self())} [Gater System] is UP!")
     Supervisor.init(children, strategy: :one_for_one)
   end
 
