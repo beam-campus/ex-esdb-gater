@@ -4,13 +4,13 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.0.1"
+  @version "0.0.2"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
   # @package_url "https://hex.pm/packages/ex_esdb"
   # @issues_url "https://github.com/beam-campus/ex-esdb/issues"
-  @description "ExESDBGater is a gateway for ExESDB Stores"
+  @description "ExESDBGater is a API gateway and load balancer for ExESDB Stores"
 
   def project do
     [
@@ -90,7 +90,11 @@ defmodule ExESDBGater.MixProject do
       {:bc_utils, "~> 0.6.0"},
       {:swarm, "~> 3.4"},
       {:phoenix_pubsub, "~> 2.1"},
-      {:libcluster, "~> 3.5"}
+      {:libcluster, "~> 3.5"},
+      {:protobuf, "~> 0.14"},
+      {:gen_retry, "~> 1.4"},
+      {:uuidv7, "~> 1.0"},
+      {:elixir_uuid, "~> 1.2"}
     ]
   end
 
