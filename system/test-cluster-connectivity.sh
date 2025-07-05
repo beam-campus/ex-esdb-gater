@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ExESDGater Cluster Connectivity Test Script
+# ExESDB Gater Cluster Connectivity Test Script
 # This script tests network connectivity and gossip functionality
 
 set -e
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🔍 Testing ExESDGater Cluster Connectivity...${NC}"
+echo -e "${BLUE}🔍 Testing ExESDB Gater Cluster Connectivity...${NC}"
 
 # Check if running in container
 if [ -f /.dockerenv ]; then
@@ -52,7 +52,7 @@ done
 
 # Check Erlang distribution
 echo -e "${BLUE}🎯 Erlang Distribution Check:${NC}"
-epmd -names | grep -q ex_esdb_gater && echo -e "${GREEN}✅ ExESDGater is registered with EPMD${NC}" || echo -e "${YELLOW}⚠️  ExESDGater not registered with EPMD${NC}"
+epmd -names | grep -q ex_esdb_gater && echo -e "${GREEN}✅ ExESDB Gater is registered with EPMD${NC}" || echo -e "${YELLOW}⚠️  ExESDB Gater not registered with EPMD${NC}"
 
 # Test cluster secret environment
 echo -e "${BLUE}🔐 Cluster Configuration:${NC}"
@@ -68,17 +68,17 @@ else
     echo -e "${RED}❌ Erlang cookie is not configured${NC}"
 fi
 
-# Check if ExESDGater application is running
+# Check if ExESDB Gater application is running
 echo -e "${BLUE}🚀 Application Status:${NC}"
 if /system/bin/ex_esdb_gater ping >/dev/null 2>&1; then
-    echo -e "${GREEN}✅ ExESDGater application is responding${NC}"
+    echo -e "${GREEN}✅ ExESDB Gater application is responding${NC}"
     
     # Try to get connected nodes
     echo -e "${BLUE}🔗 Connected Nodes:${NC}"
     connected_nodes=$(/system/bin/ex_esdb_gater rpc "Node.list()." 2>/dev/null | wc -l)
     echo -e "${BLUE}  📊 Connected to $connected_nodes other nodes${NC}"
 else
-    echo -e "${YELLOW}⚠️  ExESDGater application is not responding${NC}"
+    echo -e "${YELLOW}⚠️  ExESDB Gater application is not responding${NC}"
 fi
 
 echo -e ""

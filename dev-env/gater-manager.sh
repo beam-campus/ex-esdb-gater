@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# ExESDGater Manager - Simplified cluster management for ExESDGater
-# This script provides easy management of ExESDGater instances and development tools
+# ExESDB Gater Manager - Simplified cluster management for ExESDB Gater
+# This script provides easy management of ExESDB Gater instances and development tools
 
 set -e
 
@@ -23,7 +23,7 @@ ENVIRONMENT_MODE="dev"
 
 # Service configurations
 declare -A SERVICES=(
-    ["gater"]="ex-esdb-network.yaml,ex-esdb-gater.yaml,ex-esdb-gater-override.yaml,gater,ExESDGater instance"
+    ["gater"]="ex-esdb-network.yaml,ex-esdb-gater.yaml,ex-esdb-gater-override.yaml,gater,ExESDB Gater instance"
     ["tools"]="livebook.yml,excalidraw.yml,networks.yml,tools,Development tools"
 )
 
@@ -51,11 +51,11 @@ get_service_config() {
 # Function to print header
 print_header() {
     clear
-    print_color $CYAN "╔══════════════════════════════════════════════════════════════╗"
-    print_color $CYAN "║                    ExESDGater Manager                        ║"
-    print_color $CYAN "║                                                              ║"
-    print_color $CYAN "║              Gateway & Development Tools                     ║"
-    print_color $CYAN "╚══════════════════════════════════════════════════════════════╝"
+print_color $CYAN "╔══════════════════════════════════════════════════════════════╗"
+print_color $CYAN "║                   ExESDB Gater Manager                      ║"
+print_color $CYAN "║                                                              ║"
+print_color $CYAN "║                 Gateway Load Balancer                        ║"
+print_color $CYAN "╚══════════════════════════════════════════════════════════════╝"
     echo
 }
 
@@ -169,7 +169,7 @@ start_service() {
             echo "  • Excalidraw: http://localhost:8081"
         elif [[ "$service_name" == "gater" ]]; then
             echo
-            print_color $CYAN "ExESDGater is now running and should automatically discover ExESDB cluster nodes"
+            print_color $CYAN "ExESDB Gater is now running and should automatically discover ExESDB cluster nodes"
         fi
     else
         print_color $RED "✗ Failed to start $service_name"
@@ -272,14 +272,14 @@ show_resource_usage() {
 
 # Function to check cluster connectivity
 check_cluster_connectivity() {
-    print_color $YELLOW "Checking ExESDGater cluster connectivity..."
+    print_color $YELLOW "Checking ExESDB Gater cluster connectivity..."
     echo
     
     # Check if gater is running
     local gater_container=$(docker ps --filter "name=ex-esdb-gater" --format "{{.Names}}" 2>/dev/null)
     
     if [[ -z "$gater_container" ]]; then
-        print_color $RED "ExESDGater container is not running!"
+        print_color $RED "ExESDB Gater container is not running!"
         return 1
     fi
     
@@ -303,18 +303,18 @@ show_menu() {
     print_color $GREEN "  [u] Show Resource Usage"
     print_color $GREEN "  [c] Check Cluster Connectivity"
     echo
-    print_color $BLUE "  [1] Start ExESDGater"
+    print_color $BLUE "  [1] Start ExESDB Gater"
     print_color $BLUE "  [2] Start Development Tools"
     print_color $BLUE "  [a] Start All Services"
     echo
-    print_color $YELLOW "  [3] Stop ExESDGater"
+    print_color $YELLOW "  [3] Stop ExESDB Gater"
     print_color $YELLOW "  [4] Stop Development Tools"
     print_color $YELLOW "  [z] Stop All Services"
     echo
-    print_color $PURPLE "  [r1] Restart ExESDGater"
+    print_color $PURPLE "  [r1] Restart ExESDB Gater"
     print_color $PURPLE "  [r2] Restart Development Tools"
     echo
-    print_color $CYAN "  [l1] Show ExESDGater Logs"
+    print_color $CYAN "  [l1] Show ExESDB Gater Logs"
     print_color $CYAN "  [l2] Show Tools Logs"
     echo
     print_color $RED "  [clean] Clean All Data"

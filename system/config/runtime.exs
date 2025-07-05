@@ -7,6 +7,9 @@ config :ex_esdb_gater, :api,
   connect_to: connect_to(),
   pub_sub: pub_sub()
 
+config :swarm,
+  logger: false
+
 config :libcluster,
   topologies: [
     ex_esdb_gater: [

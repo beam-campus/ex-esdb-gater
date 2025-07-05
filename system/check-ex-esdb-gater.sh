@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# ExESDGater Health Check with Cluster Awareness
+# ExESDB Gater Health Check with Cluster Awareness
 echo "Checking if ex_esdb_gater is up on [$(hostname)]...for clique [$EX_ESDB_COOKIE]"
 
-# Check if ExESDGater is registered with EPMD
+# Check if ExESDB Gater is registered with EPMD
 if ! epmd -names | grep -q ex_esdb_gater; then
     echo "ERROR: ex_esdb_gater not registered with EPMD"
     exit 1

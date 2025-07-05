@@ -1,12 +1,9 @@
 #! /bin/bash
 
-# ExESDGater startup script with cluster support
+# ExESDB Gater startup script with cluster support
 set -e
 
-echo "=== ExESDGater Cluster Startup ==="
-echo "PATH=${PATH}"
-echo "EX_ESDB_COOKIE=${EX_ESDB_COOKIE}"
-echo "EX_ESDB_CLUSTER_SECRET=${EX_ESDB_CLUSTER_SECRET}"
+echo "=== ExESDB Gater Cluster Startup ==="
 echo "NODE_NAME=$(hostname)"
 
 # # Set up Erlang cookie for cluster communication
@@ -38,5 +35,5 @@ ip maddr show 2>/dev/null || echo "Multicast info not available"
 echo "Waiting for network initialization..."
 sleep 10
 
-echo "Starting ExESDGater..."
+echo "Starting ExESDB Gater..."
 exec /system/bin/ex_esdb_gater start

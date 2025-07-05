@@ -10,3 +10,5 @@ config :ex_esdb,
   log_level: :debug
 
 config :ex_esdb_gater, :api, pub_sub: :ex_esdb_pubsub
+
+config :swarm, log_level: :error, logger: false

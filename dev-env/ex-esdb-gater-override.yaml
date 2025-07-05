@@ -1,4 +1,4 @@
-# ExESDGater Docker Compose Override for Gossip MultiCast Clustering
+# ExESDB Gater Docker Compose Override for Gossip MultiCast Clustering
 # Use with: docker-compose -f ex-esdb-gater.yaml -f ex-esdb-gater-cluster.yaml up
 
 services:

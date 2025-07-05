@@ -3,7 +3,7 @@ The ExESDB Gateway API
 
 ## Features
 
-ExESDGater is a high-availability gateway service that provides secure, load-balanced access to ExESDB clusters. It acts as a proxy layer between client applications and the ExESDB event store cluster, offering simplified API access and automatic cluster discovery.
+ExESDB Gater is a high-availability gateway service that provides secure, load-balanced access to ExESDB clusters. It acts as a proxy layer between client applications and the ExESDB event store cluster, offering simplified API access and automatic cluster discovery.
 
 ### Core Functionality
 
@@ -33,7 +33,7 @@ ExESDGater is a high-availability gateway service that provides secure, load-bal
 ### Cluster Discovery & High Availability
 
 #### LibCluster Integration
-ExESDGater uses LibCluster for automatic cluster discovery and formation:
+ExESDB Gater uses LibCluster for automatic cluster discovery and formation:
 
 - **Strategy**: Gossip-based multicast discovery
 - **Protocol**: UDP multicast on configurable port (default: 45892)
@@ -42,7 +42,7 @@ ExESDGater uses LibCluster for automatic cluster discovery and formation:
 - **Broadcast Address**: Configurable multicast address (default: 255.255.255.255)
 
 #### Cluster Formation Process
-1. **Bootstrap**: ExESDGater starts and initializes LibCluster
+1. **Bootstrap**: ExESDB Gater starts and initializes LibCluster
 2. **Discovery**: Uses gossip multicast to discover ExESDB nodes
 3. **Authentication**: Validates cluster membership using shared secrets
 4. **Connection**: Establishes Erlang distribution connections to cluster nodes
@@ -109,7 +109,7 @@ config :libcluster,
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   ExESDGater    │    │   ExESDGater    │    │   ExESDGater    │
+│   ExESDB Gater    │    │   ExESDB Gater    │    │   ExESDB Gater    │
 │   (gateway-1)   │◄──►│   (gateway-2)   │◄──►│   (gateway-3)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
@@ -123,7 +123,7 @@ config :libcluster,
 - **Health Checks**: Container-level health monitoring
 
 #### Production Deployment
-- **Multiple Gateways**: Deploy multiple ExESDGater instances for redundancy
+- **Multiple Gateways**: Deploy multiple ExESDB Gater instances for redundancy
 - **Load Balancers**: Use external load balancers for client request distribution
 - **Monitoring**: Comprehensive logging and metrics collection
 - **Security**: Network-level security with firewall rules and VPNs

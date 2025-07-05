@@ -6,6 +6,7 @@ defmodule ExESDBGater.System do
   use Supervisor
   require Logger
   alias ExESDBGater.Themes, as: Themes
+  alias BCUtils.PubSubManager
 
   @impl Supervisor
   def init(opts) do
@@ -16,9 +17,10 @@ defmodule ExESDBGater.System do
       [
         {Cluster.Supervisor, [topologies, [name: ExESDBGater.LibCluster]]},
         {ExESDBGater.ClusterMonitor, opts},
-        {Phoenix.PubSub, name: pub_sub},
+        maybe_add_pubsub(pub_sub),
         {ExESDBGater.API, opts}
       ]
+      |> Enum.filter(& &1)  # Remove nil entries
 
     IO.puts("#{Themes.system(self())} is UP!")
     Supervisor.init(children, strategy: :one_for_one)
@@ -40,4 +42,9 @@ defmodule ExESDBGater.System do
       restart: :permanent,
       shutdown: 5000
     }
+
+  # Helper function to conditionally add Phoenix.PubSub using PubSubManager
+  defp maybe_add_pubsub(pub_sub_name) do
+    PubSubManager.maybe_child_spec(pub_sub_name)
+  end
 end

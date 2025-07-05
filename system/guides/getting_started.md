@@ -1,6 +1,6 @@
-# Getting Started with ExESDGater
+# Getting Started with ExESDB Gater
 
-ExESDGater is a high-availability gateway service that provides secure, load-balanced access to ExESDB clusters. This guide will walk you through setting up and using ExESDGater in both development and production environments.
+ExESDB Gater is a high-availability gateway service that provides secure, load-balanced access to ExESDB clusters. This guide will walk you through setting up and using ExESDB Gater in both development and production environments.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ ExESDGater is a high-availability gateway service that provides secure, load-bal
 
 ### ExESDB Cluster
 
-ExESDGater requires a running ExESDB cluster to connect to. Make sure you have:
+ExESDB Gater requires a running ExESDB cluster to connect to. Make sure you have:
 
 1. An operational ExESDB cluster
 2. Shared network connectivity (e.g., Docker bridge network)
@@ -51,7 +51,7 @@ cd dev-env
 ```
 
 This will launch an interactive menu where you can:
-- Start ExESDGater
+- Start ExESDB Gater
 - Start development tools (Livebook, Excalidraw)
 - Monitor cluster connectivity
 - View logs and resource usage
@@ -63,7 +63,7 @@ If you prefer manual control:
 ```bash
 cd dev-env
 
-# Start ExESDGater
+# Start ExESDB Gater
 docker-compose \
   -f ex-esdb-network.yaml \
   -f ex-esdb-gater.yaml \
@@ -75,7 +75,7 @@ docker-compose \
 
 ### 4. Verify Installation
 
-Check that ExESDGater is running and connected to the cluster:
+Check that ExESDB Gater is running and connected to the cluster:
 
 ```bash
 # Check container status
@@ -146,7 +146,7 @@ cd dev-env
 
 ### Basic Configuration
 
-ExESDGater configuration is handled through environment variables and Elixir configuration files.
+ExESDB Gater configuration is handled through environment variables and Elixir configuration files.
 
 #### Environment Variables
 
@@ -207,9 +207,9 @@ networks:
 
 ### How It Works
 
-ExESDGater uses LibCluster with Gossip strategy for automatic cluster discovery:
+ExESDB Gater uses LibCluster with Gossip strategy for automatic cluster discovery:
 
-1. **Initialization**: ExESDGater starts and initializes LibCluster
+1. **Initialization**: ExESDB Gater starts and initializes LibCluster
 2. **Broadcast**: Sends gossip broadcasts on multicast network
 3. **Discovery**: Listens for ExESDB node advertisements
 4. **Authentication**: Validates cluster membership using shared secrets
@@ -220,7 +220,7 @@ ExESDGater uses LibCluster with Gossip strategy for automatic cluster discovery:
 
 ```mermaid
 sequenceDiagram
-    participant G as ExESDGater
+    participant G as ExESDB Gater
     participant N as Multicast Network
     participant E1 as ExESDB Node1
     participant E2 as ExESDB Node2
@@ -263,7 +263,7 @@ sequenceDiagram
 
 ### Basic Operations
 
-Once ExESDGater is connected to the cluster, you can use its API for event store operations:
+Once ExESDB Gater is connected to the cluster, you can use its API for event store operations:
 
 #### Append Events
 
@@ -407,7 +407,7 @@ docker logs ex-esdb-gater 2>&1 | grep -i error
 
 #### Structured Log Analysis
 
-ExESDGater provides structured logging with color-coded themes:
+ExESDB Gater provides structured logging with color-coded themes:
 
 - 🔗 **ClusterMonitor**: Node connection events
 - 🚪 **API**: Gateway API operations
@@ -415,7 +415,7 @@ ExESDGater provides structured logging with color-coded themes:
 
 ### Common Issues and Solutions
 
-#### Issue: ExESDGater not discovering ExESDB nodes
+#### Issue: ExESDB Gater not discovering ExESDB nodes
 
 **Symptoms**: Empty node list, no cluster connections
 
@@ -432,7 +432,7 @@ ExESDGater provides structured logging with color-coded themes:
 
 3. Verify cluster secrets match:
    ```bash
-   # Check ExESDGater secret
+   # Check ExESDB Gater secret
    docker exec ex-esdb-gater env | grep CLUSTER_SECRET
    
    # Check ExESDB secret
@@ -446,11 +446,11 @@ ExESDGater provides structured logging with color-coded themes:
 **Solutions**:
 1. Check Swarm registration:
    ```elixir
-   # In ExESDGater console
+   # In ExESDB Gater console
    Swarm.registered() |> Enum.filter(fn {name, _} -> match?({:gateway_worker, _, _}, name) end)
    ```
 
-2. Restart ExESDGater:
+2. Restart ExESDB Gater:
    ```bash
    cd dev-env
    ./gater-manager.sh
@@ -587,7 +587,7 @@ spec:
 
 #### Access Control
 
-1. **API Gateway**: Place ExESDGater behind an API gateway
+1. **API Gateway**: Place ExESDB Gater behind an API gateway
 2. **Authentication**: Implement proper authentication for client applications
 3. **Authorization**: Control access to specific streams and operations
 
@@ -601,7 +601,7 @@ spec:
 
 #### Scaling Guidelines
 
-- **Horizontal Scaling**: Add more ExESDGater instances for higher throughput
+- **Horizontal Scaling**: Add more ExESDB Gater instances for higher throughput
 - **Load Balancing**: Use external load balancers for client requests
 - **Monitoring**: Implement comprehensive monitoring and alerting
 
@@ -625,7 +625,7 @@ spec:
 
 1. **Secrets**: Use proper secret management for cluster credentials
 2. **Network**: Implement network-level security controls
-3. **Updates**: Keep ExESDGater and dependencies updated
+3. **Updates**: Keep ExESDB Gater and dependencies updated
 4. **Auditing**: Log and audit all administrative operations
 
 ### Performance
@@ -637,12 +637,12 @@ spec:
 
 ## Next Steps
 
-Now that you have ExESDGater up and running:
+Now that you have ExESDB Gater up and running:
 
 1. **Explore the API**: Try different event store operations
 2. **Set up Monitoring**: Implement proper monitoring and alerting
-3. **Build Applications**: Integrate ExESDGater into your event-sourced applications
-4. **Scale**: Deploy multiple ExESDGater instances for high availability
+3. **Build Applications**: Integrate ExESDB Gater into your event-sourced applications
+4. **Scale**: Deploy multiple ExESDB Gater instances for high availability
 5. **Contribute**: Consider contributing improvements back to the project
 
 For more information, see:
