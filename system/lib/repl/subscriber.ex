@@ -8,7 +8,7 @@ defmodule ExESDBGater.Repl.Subscriber do
   use GenServer
 
   alias ExESDBGater.API, as: API
-  alias ExESDBGater.Themes, as: Themes
+  alias ExESDBGater.Repl.Themes, as: Themes
 
   require Logger
 

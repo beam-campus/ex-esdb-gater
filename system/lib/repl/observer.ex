@@ -9,9 +9,9 @@ defmodule ExESDBGater.Repl.Observer do
   use GenServer
 
   require Logger
-  alias ExESDB.GatewayAPI, as: API
-  alias ExESDB.Options, as: Options
-  alias ExESDB.Themes, as: Themes
+  alias ExESDBGater.API, as: API
+  alias ExESDBGater.Options, as: Options
+  alias ExESDBGater.Repl.Themes, as: Themes
 
   @impl true
   def handle_info({:event_emitted, event}, state) do
@@ -109,12 +109,14 @@ defmodule ExESDBGater.Repl.Observer do
     end
   end
 
-  defp store(args), do: Keyword.get(args, :store, Options.store_id())
+  def topic(store, selector, "transient"), do: topic(store, selector)
+  def topic(store, _, name), do: topic(store, name)
+  def topic(store, "$all"), do: "#{store}:$all"
+  def topic(store, id), do: "#{store}:#{id}"
+
+  defp store(args), do: Keyword.get(args, :store, :reg_gh)
   defp type(args), do: Keyword.get(args, :type, :by_stream)
   defp selector(args), do: Keyword.get(args, :selector, "$all")
   defp pubsub(args), do: Keyword.get(args, :pubsub, Options.pub_sub())
   defp name(args), do: Keyword.get(args, :name, "transient")
-
-  defp topic(store, selector, "transient"), do: :emitter_group.topic(store, selector)
-  defp topic(store, _, name), do: :emitter_group.topic(store, name)
 end

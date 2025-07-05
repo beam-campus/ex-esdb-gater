@@ -3,11 +3,10 @@ defmodule ExESDBGater.Repl.Producer do
   use GenServer
 
   require Logger
-  alias ExESDB.Options, as: Options
-  alias ExESDB.Repl.EventGenerator, as: ESGen
-  alias ExESDB.StreamsHelper, as: SHelper
-  alias ExESDB.StreamsWriter, as: StrWriter
-  alias ExESDB.Themes, as: Themes
+
+  alias ExESDBGater.API, as: API
+  alias ExESDBGater.Repl.EventGenerator, as: ESGen
+  alias ExESDBGater.Repl.Themes, as: Themes
 
   @impl true
   def handle_info(:produce, state) do
@@ -54,7 +53,7 @@ defmodule ExESDBGater.Repl.Producer do
           period :: integer()
         ) :: pid()
   def start(stream_id \\ "greenhouse0", batch_size \\ 1, period \\ 2_000) do
-    store = Options.store_id()
+    store = :reg_gh
     args = [store: store, stream_id: stream_id, batch_size: batch_size, period: period]
 
     case start_link(args) do
@@ -88,13 +87,14 @@ defmodule ExESDBGater.Repl.Producer do
 
   defp append(store, stream_id, nbr_of_events) do
     version =
-      store |> SHelper.get_version!(stream_id)
+      store
+      |> API.get_version(stream_id)
 
     events = ESGen.generate_events(version, nbr_of_events)
 
     {:ok, new_version} =
       store
-      |> StrWriter.append_events(stream_id, version, events)
+      |> API.append_events(stream_id, events)
 
     msg = "#{nbr_of_events} event(s) to #{inspect(store)}:#{stream_id}.v(#{new_version})"
 
