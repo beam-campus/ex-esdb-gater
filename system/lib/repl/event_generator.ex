@@ -95,7 +95,7 @@ defmodule ExESDBGater.Repl.EventGenerator do
   defp random_intensity, do: :rand.uniform(100)
 
   defp initialized,
-    do: %ExESDB.NewEvent{
+    do: %ExESDB.Schema.NewEvent{
       event_id: generate_uuid(),
       event_type: @initialized_v1,
       data_content_type: 1,
@@ -129,7 +129,7 @@ defmodule ExESDBGater.Repl.EventGenerator do
     event_id = generate_uuid()
     event_type = Enum.random(event_types())
 
-    %ExESDB.NewEvent{
+    %ExESDB.Schema.NewEvent{
       event_id: event_id,
       event_type: event_type,
       data_content_type: Enum.random(@content_types),

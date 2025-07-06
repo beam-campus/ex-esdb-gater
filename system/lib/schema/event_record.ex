@@ -1,4 +1,4 @@
-defmodule ExESDB.EventRecord do
+defmodule ExESDB.Schema.EventRecord do
   @moduledoc false
 
   use Protobuf, protoc_gen_elixir_version: "0.14.1", syntax: :proto2

@@ -98,6 +98,19 @@ defmodule ExESDBGater.API do
         {:append_events, store, stream_id, events}
       )
 
+  @spec append_events(
+          store :: atom(),
+          stream_id :: stream,
+          expected_version :: integer,
+          events :: list()
+        ) :: {:ok, integer} | {:error, term} | {:error, {:wrong_expected_version, integer}}
+  def append_events(store, stream_id, expected_version, events),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        {:append_events, store, stream_id, expected_version, events}
+      )
+
   @doc """
     Get events from a stream, staring from a given version, in a given direction.
   """
@@ -232,6 +245,95 @@ defmodule ExESDBGater.API do
       GenServer.call(
         random_gateway_worker(),
         {:list_snapshots, store, source_uuid, stream_uuid}
+      )
+
+  @doc """
+    Create a new store dynamically in the cluster.
+    
+    ## Parameters
+    - store_id: Unique identifier for the store (atom)
+    - config: Optional configuration overrides (keyword list)
+    
+    ## Returns
+    - `:ok` (fire-and-forget operation)
+  """
+  @spec create_store(
+          store_id :: atom(),
+          config :: keyword()
+        ) :: :ok
+  def create_store(store_id, config \\ []),
+    do:
+      GenServer.cast(
+        random_gateway_worker(),
+        {:create_store, store_id, config}
+      )
+
+  @doc """
+    Remove a store from the cluster.
+    
+    ## Parameters
+    - store_id: The store identifier to remove
+    
+    ## Returns
+    - `:ok` (fire-and-forget operation)
+  """
+  @spec remove_store(store_id :: atom()) :: :ok
+  def remove_store(store_id),
+    do:
+      GenServer.cast(
+        random_gateway_worker(),
+        {:remove_store, store_id}
+      )
+
+  @doc """
+    List all managed stores in the cluster.
+    
+    ## Returns
+    - `{:ok, stores_map}` containing store information
+    - `{:error, reason}` if failed
+  """
+  @spec list_stores() :: {:ok, map()} | {:error, term()}
+  def list_stores(),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        :list_stores
+      )
+
+  @doc """
+    Get the status of a specific store.
+    
+    ## Parameters
+    - store_id: The store identifier
+    
+    ## Returns
+    - `{:ok, status}` if store exists
+    - `{:error, :not_found}` if store doesn't exist
+  """
+  @spec get_store_status(store_id :: atom()) :: {:ok, atom()} | {:error, term()}
+  def get_store_status(store_id),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        {:get_store_status, store_id}
+      )
+
+  @doc """
+    Get the configuration of a specific store.
+    
+    ## Parameters
+    - store_id: The store identifier
+    
+    ## Returns
+    - `{:ok, config}` if store exists
+    - `{:error, :not_found}` if store doesn't exist
+  """
+  @spec get_store_config(store_id :: atom()) :: {:ok, keyword()} | {:error, term()}
+  def get_store_config(store_id),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        {:get_store_config, store_id}
       )
 
   ################## PLUMBING ##################
