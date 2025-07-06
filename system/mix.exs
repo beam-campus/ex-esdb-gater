@@ -27,7 +27,8 @@ defmodule ExESDBGater.MixProject do
       releases: releases(),
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: coverage_tool()],
-      preferred_cli_env: [coveralls: :test]
+      preferred_cli_env: [coveralls: :test],
+      elixirc_options: elixirc_options(Mix.env())
     ]
   end
 
@@ -80,6 +81,8 @@ defmodule ExESDBGater.MixProject do
     ]
 
   defp elixirc_paths(_), do: ["lib"]
+
+  defp elixirc_options(_), do: [docs: true]
 
   defp deps do
     [

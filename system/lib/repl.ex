@@ -35,8 +35,6 @@ defmodule ExESDBGater.Repl do
   def stream4, do: @greenhouse4
   def stream5, do: @greenhouse5
 
-  def get_opts, do: ExESDB.Options.app_env()
-
   def get_streams, do: API.get_streams(@store)
 
   def get_subscriptions, do: API.get_subscriptions(@store)
@@ -74,10 +72,6 @@ defmodule ExESDBGater.Repl do
   """
   @spec start_observer_for_all_streams() :: :ok
   def start_observer_for_all_streams do
-    Logger.warning("Starting Observer for all streams in 5 seconds...
-      Switch to :observer application to see it come online.")
-    Process.sleep(5_000)
-
     Observer.start(
       store: @store,
       type: :by_stream,
@@ -94,10 +88,6 @@ defmodule ExESDBGater.Repl do
   """
   @spec start_observer_for_stream(stream :: String.t()) :: :ok
   def start_observer_for_stream(stream \\ "$greenhouse-1") do
-    Logger.warning("Starting Observer for [#{stream}] in 5 seconds...
-      Switch to :observer application to see it come online.")
-    Process.sleep(5_000)
-
     Observer.start(
       store: @store,
       type: :by_stream,
@@ -128,10 +118,6 @@ defmodule ExESDBGater.Repl do
   """
   @spec start_observer_for_event_type(event_type :: String.t()) :: :ok
   def start_observer_for_event_type(event_type \\ "initialized:v1") do
-    Logger.warning("Starting Observer for [#{event_type}] in 5 seconds...
-      Switch to :observer application to see it come online.")
-    Process.sleep(5_000)
-
     Observer.start(
       store: @store,
       type: :by_event_type,
@@ -151,13 +137,6 @@ defmodule ExESDBGater.Repl do
         observer_name,
         event_payload_pattern
       ) do
-    Logger.warning(
-      "Starting Observer for [#{observer_name}] with [#{inspect(event_payload_pattern, pretty: true)}] in 5 seconds...
-      Switch to :observer application to see it come online."
-    )
-
-    Process.sleep(5_000)
-
     Observer.start(
       store: @store,
       type: :by_event_payload,
@@ -181,13 +160,6 @@ defmodule ExESDBGater.Repl do
           start_from :: integer()
         ) :: :ok
   def start_subscriber_for_stream(subscription_name, stream \\ "$greenhouse-1", start_from \\ 0) do
-    Logger.warning(
-      "Starting Subscriber for [#{subscription_name}] to [#{stream}] from [#{start_from}] in 5 seconds... 
-      Switch to :observer application to see it come online."
-    )
-
-    Process.sleep(5_000)
-
     Subscriber.start(
       subscription_name,
       stream,
@@ -203,10 +175,6 @@ defmodule ExESDBGater.Repl do
     Where n is the number of the producer.
   """
   def start_producers(nbr_of_producers \\ 10) do
-    Logger.warning("Starting #{nbr_of_producers} Producers in 5 seconds. 
-      Switch to :observer application to see them come online.")
-    Process.sleep(5_000)
-
     1..nbr_of_producers
     |> Enum.each(fn n -> Producer.start("greenhouse-#{n}") end)
 
