@@ -134,8 +134,8 @@ defmodule ExESDB.Schema do
 
     use Protobuf, protoc_gen_elixir_version: "0.14.1", syntax: :proto2
 
-    field(:event, 1, required: true, type: EventRecord)
-    field(:link, 2, optional: true, type: EventRecord)
+    field(:event, 1, required: true, type: ExESDB.Schema.EventRecord)
+    field(:link, 2, optional: true, type: ExESDB.Schema.EventRecord)
   end
 
   defmodule ResolvedEvent do
@@ -143,8 +143,8 @@ defmodule ExESDB.Schema do
 
     use Protobuf, protoc_gen_elixir_version: "0.14.1", syntax: :proto2
 
-    field(:event, 1, required: true, type: EventRecord)
-    field(:link, 2, optional: true, type: EventRecord)
+    field(:event, 1, required: true, type: ExESDB.Schema.EventRecord)
+    field(:link, 2, optional: true, type: ExESDB.Schema.EventRecord)
     field(:commit_position, 3, required: true, type: :int64, json_name: "commitPosition")
     field(:prepare_position, 4, required: true, type: :int64, json_name: "preparePosition")
   end
@@ -156,7 +156,7 @@ defmodule ExESDB.Schema do
 
     field(:event_stream_id, 1, required: true, type: :string, json_name: "eventStreamId")
     field(:expected_version, 2, required: true, type: :int64, json_name: "expectedVersion")
-    field(:events, 3, repeated: true, type: NewEvent)
+    field(:events, 3, repeated: true, type: ExESDB.Schema.NewEvent)
     field(:require_master, 4, required: true, type: :bool, json_name: "requireMaster")
   end
 
@@ -222,7 +222,7 @@ defmodule ExESDB.Schema do
     use Protobuf, protoc_gen_elixir_version: "0.14.1", syntax: :proto2
 
     field(:transaction_id, 1, required: true, type: :int64, json_name: "transactionId")
-    field(:events, 2, repeated: true, type: NewEvent)
+    field(:events, 2, repeated: true, type: ExESDB.Schema.NewEvent)
     field(:require_master, 3, required: true, type: :bool, json_name: "requireMaster")
   end
 
