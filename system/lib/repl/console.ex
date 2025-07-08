@@ -296,7 +296,7 @@ defmodule ExESDBGater.Repl.Console do
         count = IO.gets("Number of events to fetch (default 10): ") |> String.trim()
         count = if count == "", do: 10, else: String.to_integer(count)
         
-        case API.get_events(Repl.store(), stream, 1, count, :forward) do
+        case API.get_events(Repl.store(), stream, 0, count, :forward) do
           {:ok, events} ->
             IO.puts("\n#{CF.green_on_black()}📄 Events from '#{stream}':#{CF.reset()}")
             events |> Enum.each(fn event ->

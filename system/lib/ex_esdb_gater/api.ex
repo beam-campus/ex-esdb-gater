@@ -336,6 +336,53 @@ defmodule ExESDBGater.API do
         {:get_store_config, store_id}
       )
 
+  @doc """
+    Get events from a stream, staring from a given version, forward.
+    
+    ## Parameters
+    - store: the id of the store
+    - stream_id: the id of the stream
+    - start_version: the version to start from
+    - count: the number of events to return
+    ## Returns
+     - a stream of events
+  """
+  @spec stream_forward(
+          store :: atom(),
+          stream_id :: stream,
+          start_version :: integer,
+          count :: integer
+        ) :: {:ok, stream()} | {:error, term}
+  def stream_forward(store, stream_id, start_version, count),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        {:stream_forward, store, stream_id, start_version, count}
+      )
+
+  @doc """
+    Get events from a stream, staring from a given version, backward.
+    ## Parameters
+  #   - store: the id of the store
+  #   - stream_id: the id of the stream
+  #   - start_version: the version to start from
+  #   - count: the number of events to return
+  #   ## Returns
+  #    - a stream of events
+  """
+  @spec stream_backward(
+          store :: atom(),
+          stream_id :: stream,
+          start_version :: integer,
+          count :: non_neg_integer()
+        ) :: {:ok, stream()} | {:error, term}
+  def stream_backward(store, stream_id, start_version, count),
+    do:
+      GenServer.call(
+        random_gateway_worker(),
+        {:stream_backward, store, stream_id, start_version, count}
+      )
+
   ################## PLUMBING ##################
   def init(opts) do
     IO.puts("#{Themes.api(self())} [Gater API] is UP!")
