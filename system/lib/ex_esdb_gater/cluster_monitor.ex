@@ -30,11 +30,6 @@ defmodule ExESDBGater.ClusterMonitor do
     # Monitor node connections and disconnections
     :ok = :net_kernel.monitor_nodes(true)
 
-    # Subscribe to libcluster events if available
-    if Code.ensure_loaded?(Cluster.Events) do
-      :ok = Cluster.Events.subscribe()
-    end
-
     IO.puts(Themes.cluster_monitor(self(), "🚀 started - watching for node connections"))
 
     # Log current connected nodes at startup
@@ -57,7 +52,7 @@ defmodule ExESDBGater.ClusterMonitor do
     IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
 
     # Check if this is an ExESDB node specifically
-    if is_ex_esdb_node?(node) do
+    if ex_esdb_node?(node) do
       IO.puts(
         Themes.cluster_monitor(
           self(),
@@ -77,7 +72,7 @@ defmodule ExESDBGater.ClusterMonitor do
     IO.puts(Themes.cluster_monitor(self(), "🔴 Disconnected from cluster node: #{inspect(node)}"))
     IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
 
-    if is_ex_esdb_node?(node) do
+    if ex_esdb_node?(node) do
       IO.puts(
         Themes.cluster_monitor(
           self(),
@@ -91,37 +86,14 @@ defmodule ExESDBGater.ClusterMonitor do
   end
 
   @impl true
-  def handle_info({:cluster_event, event}, state) do
-    case event do
-      {:connect, node} ->
-        IO.puts(
-          Themes.cluster_monitor(self(), "🔗 LibCluster connect event for node: #{inspect(node)}")
-        )
-
-      {:disconnect, node} ->
-        IO.puts(
-          Themes.cluster_monitor(
-            self(),
-            "💔 LibCluster disconnect event for node: #{inspect(node)}"
-          )
-        )
-
-      other ->
-        Logger.debug(Themes.cluster_monitor(self(), "📡 LibCluster event: #{inspect(other)}"))
-    end
-
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_info(msg, state) do
-    Logger.debug(Themes.cluster_monitor(self(), "Received unexpected message: #{inspect(msg)}"))
+    Logger.debug(Themes.cluster_monitor(self(), "‼️ Received unexpected message: #{inspect(msg)}"))
     {:noreply, state}
   end
 
   # Private helper functions
 
-  defp is_ex_esdb_node?(node) do
+  defp ex_esdb_node?(node) do
     node_str = Atom.to_string(node)
     String.contains?(node_str, "ex_esdb") or String.contains?(node_str, "esdb")
   end
@@ -131,7 +103,7 @@ defmodule ExESDBGater.ClusterMonitor do
 
     ex_esdb_nodes =
       all_nodes
-      |> Enum.filter(&is_ex_esdb_node?/1)
+      |> Enum.filter(&ex_esdb_node?/1)
 
     IO.puts(Themes.cluster_monitor(self(), "🏛️  Cluster Status:"))
     IO.puts(Themes.cluster_monitor(self(), "- Total nodes: #{length(all_nodes)}"))
