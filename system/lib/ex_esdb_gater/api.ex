@@ -385,7 +385,7 @@ defmodule ExESDBGater.API do
 
   ################## PLUMBING ##################
   def init(opts) do
-    IO.puts("#{Themes.api(self())} [Gater API] is UP!")
+    IO.puts("#{Themes.api(self(), "is UP!")
     {:ok, opts}
   end
 

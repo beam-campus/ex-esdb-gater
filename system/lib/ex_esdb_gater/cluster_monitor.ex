@@ -1,7 +1,7 @@
 defmodule ExESDBGater.ClusterMonitor do
   @moduledoc """
   Monitors cluster node connections and logs when ExESDBGater connects to or disconnects from cluster nodes.
-  
+
   This module subscribes to libcluster node events and provides detailed logging of cluster formation.
   """
   use GenServer
@@ -29,49 +29,63 @@ defmodule ExESDBGater.ClusterMonitor do
   def init(_opts) do
     # Monitor node connections and disconnections
     :ok = :net_kernel.monitor_nodes(true)
-    
+
     # Subscribe to libcluster events if available
     if Code.ensure_loaded?(Cluster.Events) do
       :ok = Cluster.Events.subscribe()
     end
-    
-    Logger.info("#{log_prefix()} Cluster monitor started - watching for node connections")
-    
+
+    IO.puts(Themes.cluster_monitor(self(), "🚀 started - watching for node connections"))
+
     # Log current connected nodes at startup
     connected_nodes = Node.list()
+
     if length(connected_nodes) > 0 do
-      Logger.info("#{log_prefix()} Currently connected to #{length(connected_nodes)} nodes: #{inspect(connected_nodes)}")
+      IO.puts(
+        Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(connected_nodes)}")
+      )
     else
-      Logger.info("#{log_prefix()} No cluster nodes currently connected")
+      IO.puts(Themes.cluster_monitor(self(), "No cluster nodes currently connected"))
     end
-    
+
     {:ok, %{connected_nodes: MapSet.new(connected_nodes)}}
   end
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    Logger.info("#{log_prefix()} 🟢 Connected to cluster node: #{inspect(node)}")
-    Logger.info("#{log_prefix()} 📊 Total connected nodes: #{length(Node.list())}")
-    
+    IO.puts(Themes.cluster_monitor(self(), "🟢 Connected to cluster node: #{inspect(node)}"))
+    IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
+
     # Check if this is an ExESDB node specifically
     if is_ex_esdb_node?(node) do
-      Logger.info("#{log_prefix()} ✅ Successfully connected to ExESDB cluster node: #{inspect(node)}")
+      IO.puts(
+        Themes.cluster_monitor(
+          self(),
+          "✅ Successfully connected to ExESDB cluster node: #{inspect(node)}"
+        )
+      )
+
       log_cluster_status()
     end
-    
+
     new_connected = MapSet.put(state.connected_nodes, node)
     {:noreply, %{state | connected_nodes: new_connected}}
   end
 
   @impl true
   def handle_info({:nodedown, node}, state) do
-    Logger.warning("#{log_prefix()} 🔴 Disconnected from cluster node: #{inspect(node)}")
-    Logger.info("#{log_prefix()} 📊 Total connected nodes: #{length(Node.list())}")
-    
+    IO.puts(Themes.cluster_monitor(self(), "🔴 Disconnected from cluster node: #{inspect(node)}"))
+    IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
+
     if is_ex_esdb_node?(node) do
-      Logger.warning("#{log_prefix()} ❌ Lost connection to ExESDB cluster node: #{inspect(node)}")
+      IO.puts(
+        Themes.cluster_monitor(
+          self(),
+          "❌ Lost connection to ExESDB cluster node: #{inspect(node)}"
+        )
+      )
     end
-    
+
     new_connected = MapSet.delete(state.connected_nodes, node)
     {:noreply, %{state | connected_nodes: new_connected}}
   end
@@ -80,27 +94,32 @@ defmodule ExESDBGater.ClusterMonitor do
   def handle_info({:cluster_event, event}, state) do
     case event do
       {:connect, node} ->
-        Logger.info("#{log_prefix()} 🔗 LibCluster connect event for node: #{inspect(node)}")
+        IO.puts(
+          Themes.cluster_monitor(self(), "🔗 LibCluster connect event for node: #{inspect(node)}")
+        )
+
       {:disconnect, node} ->
-        Logger.info("#{log_prefix()} 💔 LibCluster disconnect event for node: #{inspect(node)}")
+        IO.puts(
+          Themes.cluster_monitor(
+            self(),
+            "💔 LibCluster disconnect event for node: #{inspect(node)}"
+          )
+        )
+
       other ->
-        Logger.debug("#{log_prefix()} 📡 LibCluster event: #{inspect(other)}")
+        Logger.debug(Themes.cluster_monitor(self(), "📡 LibCluster event: #{inspect(other)}"))
     end
-    
+
     {:noreply, state}
   end
 
   @impl true
   def handle_info(msg, state) do
-    Logger.debug("#{log_prefix()} Received unexpected message: #{inspect(msg)}")
+    Logger.debug(Themes.cluster_monitor(self(), "Received unexpected message: #{inspect(msg)}"))
     {:noreply, state}
   end
 
   # Private helper functions
-
-  defp log_prefix do
-    "#{Themes.cluster_monitor(self())} [ClusterMonitor]"
-  end
 
   defp is_ex_esdb_node?(node) do
     node_str = Atom.to_string(node)
@@ -109,14 +128,16 @@ defmodule ExESDBGater.ClusterMonitor do
 
   defp log_cluster_status do
     all_nodes = Node.list()
-    ex_esdb_nodes = Enum.filter(all_nodes, &is_ex_esdb_node?/1)
-    
-    Logger.info("#{log_prefix()} 🏛️  Cluster Status:")
-    Logger.info("#{log_prefix()} - Total nodes: #{length(all_nodes)}")
-    Logger.info("#{log_prefix()} - ExESDB nodes: #{length(ex_esdb_nodes)}")
-    
+
+    ex_esdb_nodes =
+      all_nodes
+      |> Enum.filter(&is_ex_esdb_node?/1)
+
+    IO.puts(Themes.cluster_monitor(self(), "🏛️  Cluster Status:"))
+    IO.puts(Themes.cluster_monitor(self(), "- Total nodes: #{length(all_nodes)}"))
+
     if length(ex_esdb_nodes) > 0 do
-      Logger.info("#{log_prefix()} - ExESDB nodes: #{inspect(ex_esdb_nodes)}")
+      IO.puts(Themes.cluster_monitor(self(), "- ExESDB nodes: #{inspect(ex_esdb_nodes)}"))
     end
   end
 end
