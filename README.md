@@ -66,7 +66,6 @@ ExESDB Gater uses LibCluster for automatic cluster discovery and formation:
 
 #### Environment Variables
 
-- `EX_ESDB_GATER_CONNECT_TO`: Target cluster node (default: current node)
 - `EX_ESDB_PUB_SUB`: PubSub process name (default: :ex_esdb_pubsub)
 - `EX_ESDB_CLUSTER_SECRET`: Shared secret for cluster authentication
 - `EX_ESDB_COOKIE`: Erlang distribution cookie
@@ -189,8 +188,8 @@ ExESDB Gater is available as a Docker image on Docker Hub with automatic version
 #### Available Tags
 
 - `beamcampus/ex_esdb_gater:latest` - Latest build from master branch
-- `beamcampus/ex_esdb_gater:0.0.4` - Specific version (current version)
-- `beamcampus/ex_esdb_gater:0.0.x` - Any specific version tag
+- `beamcampus/ex_esdb_gater:0.1.2` - Specific version (current version)
+- `beamcampus/ex_esdb_gater:0.1.x` - Any specific version tag
 
 #### Quick Start
 
@@ -203,7 +202,6 @@ docker run -d \
   -p 4369:4369 \
   -p 9000:9000 \
   -p 45892:45892/udp \
-  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
   -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
   -e EX_ESDB_COOKIE="your-erlang-cookie" \
   -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
@@ -218,7 +216,6 @@ docker run -d \
   --name ex-esdb-gater-1 \
   --network ex-esdb-net \
   -p 8001:9000 \
-  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
   -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
   -e EX_ESDB_COOKIE="your-erlang-cookie" \
   -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
@@ -229,7 +226,6 @@ docker run -d \
   --name ex-esdb-gater-2 \
   --network ex-esdb-net \
   -p 8002:9000 \
-  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node2" \
   -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
   -e EX_ESDB_COOKIE="your-erlang-cookie" \
   -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
@@ -240,7 +236,6 @@ docker run -d \
   --name ex-esdb-gater-3 \
   --network ex-esdb-net \
   -p 8003:9000 \
-  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node3" \
   -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
   -e EX_ESDB_COOKIE="your-erlang-cookie" \
   -e EX_ESDB_PUB_SUB="ex_esdb_pubsub" \
@@ -284,7 +279,6 @@ docker run -d --name ex-esdb-node3 --network ex-esdb-net \
 # Start ExESDB Gater
 docker run -d --name ex-esdb-gater --network ex-esdb-net \
   -p 8080:9000 \
-  -e EX_ESDB_GATER_CONNECT_TO="ex-esdb-node1" \
   -e EX_ESDB_CLUSTER_SECRET="your-secret-key" \
   -e EX_ESDB_COOKIE="your-erlang-cookie" \
   beamcampus/ex_esdb_gater:latest
@@ -307,7 +301,6 @@ cd ex-esdb-gater/dev-env
 
 | Variable                   | Description                          | Default           | Required |
 | -------------------------- | ------------------------------------ | ----------------- | -------- |
-| `EX_ESDB_GATER_CONNECT_TO` | Target ExESDB cluster node           | Current node      | No       |
 | `EX_ESDB_PUB_SUB`          | PubSub process name                  | `:ex_esdb_pubsub` | No       |
 | `EX_ESDB_CLUSTER_SECRET`   | Cluster authentication secret        | -                 | Yes      |
 | `EX_ESDB_COOKIE`           | Erlang distribution cookie           | -                 | Yes      |
@@ -352,7 +345,7 @@ ExESDB Gater is also available as a Hex package for direct integration:
 ```elixir
 def deps do
   [
-    {:ex_esdb_gater, "~> 0.0.4"}
+    {:ex_esdb_gater, "~> 0.1.2"}
   ]
 end
 ```

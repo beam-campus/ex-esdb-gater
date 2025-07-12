@@ -15,6 +15,32 @@ defmodule ExESDBGater.API do
   require Logger
   alias ExESDBGater.Themes, as: Themes
 
+  alias UUIDv7
+
+  ########### API ############
+  def gater_api_name,
+    do: {:gater_api, UUIDv7.generate()}
+
+  defp register_with_swarm(name) do
+    case Swarm.register_name(name, self()) do
+      :yes -> :ok
+      :no -> {:error, :name_already_registered}
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:unexpected_response, other}}
+    end
+  end
+
+  def get_gater_api_pids do
+    Swarm.registered()
+    |> Enum.filter(fn {name, _} -> match?({:gater_api, _}, name) end)
+    |> Enum.map(fn {_, pid} -> pid end)
+  end
+
+  def random_gater_api,
+    do:
+      get_gater_api_pids()
+      |> Enum.random()
+
   @doc """
     Gets a list of all gateway worker pids.
   """
@@ -248,44 +274,6 @@ defmodule ExESDBGater.API do
       )
 
   @doc """
-    Create a new store dynamically in the cluster.
-    
-    ## Parameters
-    - store_id: Unique identifier for the store (atom)
-    - config: Optional configuration overrides (keyword list)
-    
-    ## Returns
-    - `:ok` (fire-and-forget operation)
-  """
-  @spec create_store(
-          store_id :: atom(),
-          config :: keyword()
-        ) :: :ok
-  def create_store(store_id, config \\ []),
-    do:
-      GenServer.cast(
-        random_gateway_worker(),
-        {:create_store, store_id, config}
-      )
-
-  @doc """
-    Remove a store from the cluster.
-    
-    ## Parameters
-    - store_id: The store identifier to remove
-    
-    ## Returns
-    - `:ok` (fire-and-forget operation)
-  """
-  @spec remove_store(store_id :: atom()) :: :ok
-  def remove_store(store_id),
-    do:
-      GenServer.cast(
-        random_gateway_worker(),
-        {:remove_store, store_id}
-      )
-
-  @doc """
     List all managed stores in the cluster.
     
     ## Returns
@@ -293,47 +281,11 @@ defmodule ExESDBGater.API do
     - `{:error, reason}` if failed
   """
   @spec list_stores() :: {:ok, map()} | {:error, term()}
-  def list_stores(),
+  def list_stores,
     do:
       GenServer.call(
-        random_gateway_worker(),
+        random_gater_api(),
         :list_stores
-      )
-
-  @doc """
-    Get the status of a specific store.
-    
-    ## Parameters
-    - store_id: The store identifier
-    
-    ## Returns
-    - `{:ok, status}` if store exists
-    - `{:error, :not_found}` if store doesn't exist
-  """
-  @spec get_store_status(store_id :: atom()) :: {:ok, atom()} | {:error, term()}
-  def get_store_status(store_id),
-    do:
-      GenServer.call(
-        random_gateway_worker(),
-        {:get_store_status, store_id}
-      )
-
-  @doc """
-    Get the configuration of a specific store.
-    
-    ## Parameters
-    - store_id: The store identifier
-    
-    ## Returns
-    - `{:ok, config}` if store exists
-    - `{:error, :not_found}` if store doesn't exist
-  """
-  @spec get_store_config(store_id :: atom()) :: {:ok, keyword()} | {:error, term()}
-  def get_store_config(store_id),
-    do:
-      GenServer.call(
-        random_gateway_worker(),
-        {:get_store_config, store_id}
       )
 
   @doc """
@@ -383,10 +335,77 @@ defmodule ExESDBGater.API do
         {:stream_backward, store, stream_id, start_version, count}
       )
 
+  defp maybe_add_store_for_node(stores, %{id: maybe_store_id} = maybe_store, maybe_node) do
+    case Enum.find(stores, fn %{store_id: id, node: node} ->
+           id == maybe_store_id && node == maybe_node
+         end) do
+      nil ->
+        Logger.info(
+          Themes.api(
+            self(),
+            "Registering store [#{inspect(maybe_store_id)}] on node [#{inspect(maybe_node)}]"
+          )
+        )
+
+        store_with_node = %{maybe_store | node: maybe_node}
+
+        [store_with_node | stores]
+
+      %{store_id: store_id, node: node} ->
+        Logger.warning(
+          Themes.api(
+            self(),
+            "Store [#{inspect(store_id)}] on node [#{inspect(node)}] already registered"
+          )
+        )
+
+        stores
+    end
+  end
+
+  ############ CALLBACKS ############
+  @impl true
+  def handle_cast({:register_store, store, node}, %{stores: stores} = state) do
+    new_stores =
+      stores
+      |> maybe_add_store_for_node(store, node)
+
+    state = %{state | stores: new_stores}
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_cast(
+        {:unregister_store, %{store_id: gone_id}, gone_node},
+        %{stores: stores} = state
+      ) do
+    new_stores =
+      Enum.filter(stores, fn %{store_id: id, node: node} ->
+        id != gone_id || node != gone_node
+      end)
+
+    state = %{state | stores: new_stores}
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_call(:list_stores, _from, state),
+    do: {:reply, {:ok, state.stores}, state}
+
   ################## PLUMBING ##################
+  @impl true
   def init(opts) do
+    register_with_swarm(gater_api_name())
     IO.puts(Themes.api(self(), "is UP!"))
-    {:ok, opts}
+
+    state = %{
+      config: opts,
+      stores: []
+    }
+
+    {:ok, state}
   end
 
   def child_spec(opts),

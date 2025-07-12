@@ -5,7 +5,9 @@ defmodule ExESDBGater.System do
   """
   use Supervisor
   require Logger
+
   alias ExESDBGater.Themes, as: Themes
+
   alias BCUtils.PubSubManager
 
   @impl Supervisor
