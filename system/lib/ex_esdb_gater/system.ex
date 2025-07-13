@@ -7,6 +7,7 @@ defmodule ExESDBGater.System do
   require Logger
 
   alias ExESDBGater.Themes, as: Themes
+  alias ExESDBGater.LibClusterHelper, as: LibClusterHelper
 
   alias BCUtils.PubSubManager
 
@@ -17,7 +18,7 @@ defmodule ExESDBGater.System do
 
     children =
       [
-        {Cluster.Supervisor, [topologies, [name: ExESDBGater.LibCluster]]},
+        LibClusterHelper.maybe_add_libcluster(topologies),
         {ExESDBGater.ClusterMonitor, opts},
         maybe_add_pubsub(pub_sub),
         {ExESDBGater.API, opts}
