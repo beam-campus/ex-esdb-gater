@@ -5,7 +5,9 @@ defmodule ExESDBGater.System do
   """
   use Supervisor
   require Logger
+
   alias ExESDBGater.Themes, as: Themes
+
   alias BCUtils.PubSubManager
 
   @impl Supervisor
@@ -23,7 +25,7 @@ defmodule ExESDBGater.System do
       # Remove nil entries
       |> Enum.filter(& &1)
 
-    IO.puts("#{Themes.system(self())} [Gater System] is UP!")
+    IO.puts(Themes.system(self(), "is UP!"))
     Supervisor.init(children, strategy: :one_for_one)
   end
 

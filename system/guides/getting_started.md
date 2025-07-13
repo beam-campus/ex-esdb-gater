@@ -18,7 +18,7 @@ ExESDB Gater is a high-availability gateway service that provides secure, load-b
 
 ### System Requirements
 
-- **Elixir**: 1.14+ 
+- **Elixir**: 1.14+
 - **Erlang/OTP**: 25+
 - **Docker**: 20.10+ (for containerized deployment)
 - **Docker Compose**: 3.8+
@@ -51,6 +51,7 @@ cd dev-env
 ```
 
 This will launch an interactive menu where you can:
+
 - Start ExESDB Gater
 - Start development tools (Livebook, Excalidraw)
 - Monitor cluster connectivity
@@ -150,14 +151,13 @@ ExESDB Gater configuration is handled through environment variables and Elixir c
 
 #### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `EX_ESDB_GATER_CONNECT_TO` | Target cluster node | `node()` |
-| `EX_ESDB_PUB_SUB` | PubSub process name | `:ex_esdb_pubsub` |
-| `EX_ESDB_CLUSTER_SECRET` | Cluster authentication secret | - |
-| `EX_ESDB_COOKIE` | Erlang distribution cookie | - |
-| `RELEASE_COOKIE` | Release distribution cookie | - |
-| `LOG_LEVEL` | Logging level | `"info"` |
+| Variable                 | Description                   | Default           |
+| ------------------------ | ----------------------------- | ----------------- |
+| `EX_ESDB_PUB_SUB`        | PubSub process name           | `:ex_esdb_pubsub` |
+| `EX_ESDB_CLUSTER_SECRET` | Cluster authentication secret | -                 |
+| `EX_ESDB_COOKIE`         | Erlang distribution cookie    | -                 |
+| `RELEASE_COOKIE`         | Release distribution cookie   | -                 |
+| `LOG_LEVEL`              | Logging level                 | `"info"`          |
 
 #### LibCluster Configuration
 
@@ -224,7 +224,7 @@ sequenceDiagram
     participant N as Multicast Network
     participant E1 as ExESDB Node1
     participant E2 as ExESDB Node2
-    
+
     G->>N: Gossip Broadcast (UDP:45892)
     E1->>N: Gossip Response
     E2->>N: Gossip Response
@@ -238,15 +238,17 @@ sequenceDiagram
 #### Common Issues
 
 1. **Network Connectivity**
+
    ```bash
    # Test multicast connectivity
    docker exec ex-esdb-gater ping 255.255.255.255
-   
+
    # Check gossip port
    docker exec ex-esdb-gater netstat -ln | grep 45892
    ```
 
 2. **Secret Mismatch**
+
    ```bash
    # Verify environment variables match
    docker exec ex-esdb-gater env | grep SECRET
@@ -351,13 +353,13 @@ Always handle potential errors in your API calls:
 case ExESDBGater.API.append_events(:my_store, "stream", events) do
   {:ok, version} ->
     Logger.info("Events appended, new version: #{version}")
-  
+
   {:error, :timeout} ->
     Logger.error("Request timed out")
-  
+
   {:error, :no_workers} ->
     Logger.error("No gateway workers available")
-  
+
   {:error, reason} ->
     Logger.error("Append failed: #{inspect(reason)}")
 end
@@ -420,21 +422,25 @@ ExESDB Gater provides structured logging with color-coded themes:
 **Symptoms**: Empty node list, no cluster connections
 
 **Solutions**:
+
 1. Verify network connectivity:
+
    ```bash
    docker network ls | grep ex-esdb-net
    ```
 
 2. Check gossip configuration:
+
    ```bash
    docker exec ex-esdb-gater env | grep -E "(GOSSIP|CLUSTER)"
    ```
 
 3. Verify cluster secrets match:
+
    ```bash
    # Check ExESDB Gater secret
    docker exec ex-esdb-gater env | grep CLUSTER_SECRET
-   
+
    # Check ExESDB secret
    docker exec ex-esdb0 env | grep CLUSTER_SECRET
    ```
@@ -444,7 +450,9 @@ ExESDB Gater provides structured logging with color-coded themes:
 **Symptoms**: `{:error, :no_workers}` responses
 
 **Solutions**:
+
 1. Check Swarm registration:
+
    ```elixir
    # In ExESDB Gater console
    Swarm.registered() |> Enum.filter(fn {name, _} -> match?({:gateway_worker, _, _}, name) end)
@@ -462,7 +470,9 @@ ExESDB Gater provides structured logging with color-coded themes:
 **Symptoms**: Slow responses, timeout errors
 
 **Solutions**:
+
 1. Check cluster health:
+
    ```bash
    docker exec ex-esdb0 /bin/sh -c "echo ':ra_leaderboard.lookup_leader(:my_store).' | /opt/ex_esdb/bin/ex_esdb rpc"
    ```
@@ -480,7 +490,7 @@ ExESDB Gater provides structured logging with color-coded themes:
 
 ```yaml
 # docker-compose.prod.yml
-version: '3.8'
+version: "3.8"
 
 services:
   ex-esdb-gater:
@@ -497,10 +507,10 @@ services:
       resources:
         limits:
           memory: 512M
-          cpus: '0.5'
+          cpus: "0.5"
         reservations:
           memory: 256M
-          cpus: '0.25'
+          cpus: "0.25"
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -528,47 +538,47 @@ spec:
         app: ex-esdb-gater
     spec:
       containers:
-      - name: ex-esdb-gater
-        image: local/ex-esdb-gater:latest
-        env:
-        - name: EX_ESDB_CLUSTER_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: cluster-secrets
-              key: cluster-secret
-        - name: EX_ESDB_COOKIE
-          valueFrom:
-            secretKeyRef:
-              name: cluster-secrets
-              key: cluster-cookie
-        - name: RELEASE_COOKIE
-          valueFrom:
-            secretKeyRef:
-              name: cluster-secrets
-              key: cluster-cookie
-        resources:
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-        livenessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - echo 'Node.alive?().' | /opt/ex_esdb_gater/bin/ex_esdb_gater rpc
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - echo 'length(Node.list()) > 0.' | /opt/ex_esdb_gater/bin/ex_esdb_gater rpc
-          initialDelaySeconds: 15
-          periodSeconds: 5
+        - name: ex-esdb-gater
+          image: local/ex-esdb-gater:latest
+          env:
+            - name: EX_ESDB_CLUSTER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cluster-secrets
+                  key: cluster-secret
+            - name: EX_ESDB_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: cluster-secrets
+                  key: cluster-cookie
+            - name: RELEASE_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: cluster-secrets
+                  key: cluster-cookie
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - echo 'Node.alive?().' | /opt/ex_esdb_gater/bin/ex_esdb_gater rpc
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - echo 'length(Node.list()) > 0.' | /opt/ex_esdb_gater/bin/ex_esdb_gater rpc
+            initialDelaySeconds: 15
+            periodSeconds: 5
 ```
 
 ### Security Considerations
@@ -646,6 +656,7 @@ Now that you have ExESDB Gater up and running:
 5. **Contribute**: Consider contributing improvements back to the project
 
 For more information, see:
+
 - [ExESDB Documentation](../../ex-esdb/system/guides/getting-started.md)
 - [LibCluster Documentation](https://hexdocs.pm/libcluster/)
 - [Elixir Release Documentation](https://hexdocs.pm/mix/Mix.Tasks.Release.html)

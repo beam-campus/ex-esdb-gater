@@ -1,11 +1,16 @@
-defmodule ExESDBGater.Repl.Console do
+defmodule ExESDBGater.Repl.Demo do
   @moduledoc """
   Interactive test console for ExESDB Gater with comprehensive observer management.
   """
 
-  alias ExESDBGater.Repl
-  alias ExESDBGater.Repl.{Observer, Producer, EventGenerator}
   alias ExESDBGater.API
+
+  alias ExESDBGater.Repl
+
+  alias ExESDBGater.Repl.EventGenerator
+  alias ExESDBGater.Repl.Observer
+  alias ExESDBGater.Repl.Producer
+
   alias BCUtils.ColorFuncs, as: CF
   require Logger
 
@@ -15,15 +20,25 @@ defmodule ExESDBGater.Repl.Console do
   def start do
     # Initialize observer registry
     :ets.new(@observer_registry, [:named_table, :public, :set])
-    
-    IO.puts("\n#{CF.bright_green_on_black()}🚀 ExESDB Interactive Test Console Started!#{CF.reset()}")
+
+    IO.puts(
+      "\n#{CF.bright_green_on_black()}🚀 ExESDB Interactive Test Console Started!#{CF.reset()}"
+    )
+
     IO.puts("#{CF.cyan_on_black()}Store: #{Repl.store()}#{CF.reset()}")
-    IO.puts("#{CF.yellow_on_black()}Available streams: #{inspect(EventGenerator.streams())}#{CF.reset()}")
+
+    IO.puts(
+      "#{CF.yellow_on_black()}Available streams: #{inspect(EventGenerator.streams())}#{CF.reset()}"
+    )
+
     main_menu()
   end
 
   defp main_menu do
-    IO.puts("\n#{CF.bright_blue_on_black()}========== ExESDB Interactive Console ==========#{CF.reset()}")
+    IO.puts(
+      "\n#{CF.bright_blue_on_black()}========== ExESDB Interactive Console ==========#{CF.reset()}"
+    )
+
     IO.puts("#{CF.green_on_black()}📊 Observers:#{CF.reset()}")
     IO.puts("  1. Create Observer by Stream")
     IO.puts("  2. Create Observer by Event Type")
@@ -45,7 +60,10 @@ defmodule ExESDBGater.Repl.Console do
     IO.puts("\n#{CF.red_on_black()}🚪 Exit:#{CF.reset()}")
     IO.puts("  15. Exit Console")
 
-    choice = IO.gets("\n#{CF.bright_white_on_black()}👉 Select an option (1-15): #{CF.reset()}") |> String.trim()
+    choice =
+      IO.gets("\n#{CF.bright_white_on_black()}👉 Select an option (1-15): #{CF.reset()}")
+      |> String.trim()
+
     handle_choice(choice)
     main_menu()
   end
@@ -57,136 +75,169 @@ defmodule ExESDBGater.Repl.Console do
   defp handle_choice("4"), do: list_observers()
   defp handle_choice("5"), do: monitor_observer()
   defp handle_choice("6"), do: stop_observer()
-  
+
   # Producer Management
   defp handle_choice("7"), do: start_producers()
   defp handle_choice("8"), do: stop_producer()
   defp handle_choice("9"), do: list_producers()
-  
+
   # Subscription Management
   defp handle_choice("10"), do: create_subscription()
   defp handle_choice("11"), do: list_subscriptions()
-  
+
   # Data Management
   defp handle_choice("12"), do: view_stream_data()
   defp handle_choice("13"), do: append_events_manually()
   defp handle_choice("14"), do: get_cluster_status()
-  
+
   # Exit
   defp handle_choice("15"), do: exit_console()
-  defp handle_choice(_), do: IO.puts("#{CF.red_on_black()}❌ Invalid choice. Please try again.#{CF.reset()}")
+
+  defp handle_choice(_),
+    do: IO.puts("#{CF.red_on_black()}❌ Invalid choice. Please try again.#{CF.reset()}")
 
   # ========== Observer Functions ==========
-  
+
   defp create_observer_by_stream do
     IO.puts("\n#{CF.bright_green_on_black()}📊 Creating Observer by Stream#{CF.reset()}")
     IO.puts("Available streams: #{inspect(EventGenerator.streams())}")
     IO.puts("Special streams: $all (all streams)")
-    
+
     stream = IO.gets("Enter stream name (or $all): ") |> String.trim()
     observer_name = IO.gets("Enter observer name: ") |> String.trim()
-    
+
     try do
-      pid = Observer.start(
-        store: Repl.store(),
-        type: :by_stream,
-        selector: stream,
-        name: observer_name
-      )
-      
+      pid =
+        Observer.start(
+          store: Repl.store(),
+          type: :by_stream,
+          selector: stream,
+          name: observer_name
+        )
+
       # Register observer
       register_observer(observer_name, :by_stream, stream, pid)
-      IO.puts("#{CF.green_on_black()}✅ Observer '#{observer_name}' created for stream '#{stream}'#{CF.reset()}")
+
+      IO.puts(
+        "#{CF.green_on_black()}✅ Observer '#{observer_name}' created for stream '#{stream}'#{CF.reset()}"
+      )
     rescue
       e -> IO.puts("#{CF.red_on_black()}❌ Failed to create observer: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp create_observer_by_event_type do
     IO.puts("\n#{CF.bright_green_on_black()}📊 Creating Observer by Event Type#{CF.reset()}")
     IO.puts("Available event types:")
-    EventGenerator.event_types() |> Enum.with_index(1) |> Enum.each(fn {type, i} ->
+
+    EventGenerator.event_types()
+    |> Enum.with_index(1)
+    |> Enum.each(fn {type, i} ->
       IO.puts("  #{i}. #{type}")
     end)
-    
+
     event_type = IO.gets("Enter event type: ") |> String.trim()
     observer_name = IO.gets("Enter observer name: ") |> String.trim()
-    
+
     try do
-      pid = Observer.start(
-        store: Repl.store(),
-        type: :by_event_type,
-        selector: event_type,
-        name: observer_name
-      )
-      
+      pid =
+        Observer.start(
+          store: Repl.store(),
+          type: :by_event_type,
+          selector: event_type,
+          name: observer_name
+        )
+
       register_observer(observer_name, :by_event_type, event_type, pid)
-      IO.puts("#{CF.green_on_black()}✅ Observer '#{observer_name}' created for event type '#{event_type}'#{CF.reset()}")
+
+      IO.puts(
+        "#{CF.green_on_black()}✅ Observer '#{observer_name}' created for event type '#{event_type}'#{CF.reset()}"
+      )
     rescue
       e -> IO.puts("#{CF.red_on_black()}❌ Failed to create observer: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp create_observer_by_event_payload do
     IO.puts("\n#{CF.bright_green_on_black()}📊 Creating Observer by Event Payload#{CF.reset()}")
     IO.puts("Example patterns:")
     IO.puts("  %{operator: \"John\"}   - Events with operator John")
     IO.puts("  %{temperature: 25}    - Events with temperature 25")
     IO.puts("  %{intensity: _}       - Events with any intensity field")
-    
+
     observer_name = IO.gets("Enter observer name: ") |> String.trim()
     IO.puts("Enter payload pattern as Elixir map (e.g., %{operator: \"John\"})")
     pattern_str = IO.gets("Pattern: ") |> String.trim()
-    
+
     try do
       {pattern, _} = Code.eval_string(pattern_str)
-      
-      pid = Observer.start(
-        store: Repl.store(),
-        type: :by_event_payload,
-        selector: pattern,
-        name: observer_name
-      )
-      
+
+      pid =
+        Observer.start(
+          store: Repl.store(),
+          type: :by_event_payload,
+          selector: pattern,
+          name: observer_name
+        )
+
       register_observer(observer_name, :by_event_payload, pattern, pid)
-      IO.puts("#{CF.green_on_black()}✅ Observer '#{observer_name}' created for payload pattern #{inspect(pattern)}#{CF.reset()}")
+
+      IO.puts(
+        "#{CF.green_on_black()}✅ Observer '#{observer_name}' created for payload pattern #{inspect(pattern)}#{CF.reset()}"
+      )
     rescue
       e -> IO.puts("#{CF.red_on_black()}❌ Failed to create observer: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp list_observers do
     IO.puts("\n#{CF.bright_blue_on_black()}📋 Active Observers#{CF.reset()}")
-    
+
     observers = :ets.tab2list(@observer_registry)
-    
+
     if observers == [] do
       IO.puts("#{CF.yellow_on_black()}⚠️  No active observers#{CF.reset()}")
     else
-      IO.puts("#{CF.cyan_on_black()}#{String.pad_trailing("Name", 20)} #{String.pad_trailing("Type", 20)} #{String.pad_trailing("Selector", 30)} Status#{CF.reset()}")
+      IO.puts(
+        "#{CF.cyan_on_black()}#{String.pad_trailing("Name", 20)} #{String.pad_trailing("Type", 20)} #{String.pad_trailing("Selector", 30)} Status#{CF.reset()}"
+      )
+
       IO.puts(String.duplicate("-", 80))
-      
-      observers |> Enum.each(fn {name, {type, selector, pid}} ->
-        status = if Process.alive?(pid), do: "#{CF.green_on_black()}🟢 Running#{CF.reset()}", else: "#{CF.red_on_black()}🔴 Stopped#{CF.reset()}"
-        IO.puts("#{String.pad_trailing(name, 20)} #{String.pad_trailing(to_string(type), 20)} #{String.pad_trailing(inspect(selector), 30)} #{status}")
+
+      observers
+      |> Enum.each(fn {name, {type, selector, pid}} ->
+        status =
+          if Process.alive?(pid),
+            do: "#{CF.green_on_black()}🟢 Running#{CF.reset()}",
+            else: "#{CF.red_on_black()}🔴 Stopped#{CF.reset()}"
+
+        IO.puts(
+          "#{String.pad_trailing(name, 20)} #{String.pad_trailing(to_string(type), 20)} #{String.pad_trailing(inspect(selector), 30)} #{status}"
+        )
       end)
     end
   end
-  
+
   defp monitor_observer do
     list_observers()
     observer_name = IO.gets("\nEnter observer name to monitor: ") |> String.trim()
-    
+
     case :ets.lookup(@observer_registry, observer_name) do
       [] ->
         IO.puts("#{CF.red_on_black()}❌ Observer '#{observer_name}' not found#{CF.reset()}")
-      
+
       [{^observer_name, {type, selector, pid}}] ->
         if Process.alive?(pid) do
-          IO.puts("\n#{CF.bright_yellow_on_black()}👁️  Monitoring Observer: #{observer_name}#{CF.reset()}")
-          IO.puts("#{CF.cyan_on_black()}Type: #{type}, Selector: #{inspect(selector)}#{CF.reset()}")
-          IO.puts("#{CF.dim_white_on_black()}Press Ctrl+C to stop monitoring#{CF.reset()}")
-          
+          IO.puts(
+            "\n#{CF.bright_yellow_on_black()}👁️  Monitoring Observer: #{observer_name}#{CF.reset()}"
+          )
+
+          IO.puts(
+            "#{CF.cyan_on_black()}Type: #{type}, Selector: #{inspect(selector)}#{CF.reset()}"
+          )
+
+          IO.puts("#{CF.bright_white_on_black()}Press Ctrl+C to stop monitoring#{CF.reset()}")
+
           # Monitor the observer process
           monitor_process(pid, observer_name)
         else
@@ -194,15 +245,15 @@ defmodule ExESDBGater.Repl.Console do
         end
     end
   end
-  
+
   defp stop_observer do
     list_observers()
     observer_name = IO.gets("\nEnter observer name to stop: ") |> String.trim()
-    
+
     case :ets.lookup(@observer_registry, observer_name) do
       [] ->
         IO.puts("#{CF.red_on_black()}❌ Observer '#{observer_name}' not found#{CF.reset()}")
-      
+
       [{^observer_name, {_type, _selector, pid}}] ->
         if Process.alive?(pid) do
           Process.exit(pid, :kill)
@@ -210,26 +261,29 @@ defmodule ExESDBGater.Repl.Console do
           IO.puts("#{CF.green_on_black()}✅ Observer '#{observer_name}' stopped#{CF.reset()}")
         else
           :ets.delete(@observer_registry, observer_name)
-          IO.puts("#{CF.yellow_on_black()}⚠️  Observer '#{observer_name}' was already stopped#{CF.reset()}")
+
+          IO.puts(
+            "#{CF.yellow_on_black()}⚠️  Observer '#{observer_name}' was already stopped#{CF.reset()}"
+          )
         end
     end
   end
-  
+
   # ========== Producer Functions ==========
-  
+
   defp start_producers do
     IO.puts("\n#{CF.bright_green_on_black()}🏭 Starting Producers#{CF.reset()}")
     count = IO.gets("Number of producers (default 3): ") |> String.trim()
     count = if count == "", do: 3, else: String.to_integer(count)
-    
+
     Repl.start_producers(count)
     IO.puts("#{CF.green_on_black()}✅ Started #{count} producers#{CF.reset()}")
   end
-  
+
   defp stop_producer do
     IO.puts("\n#{CF.bright_red_on_black()}🛑 Stopping Producer#{CF.reset()}")
     stream_id = IO.gets("Enter stream ID to stop producer: ") |> String.trim()
-    
+
     try do
       Repl.stop_producer_for_stream(stream_id)
       IO.puts("#{CF.green_on_black()}✅ Producer for '#{stream_id}' stopped#{CF.reset()}")
@@ -237,143 +291,174 @@ defmodule ExESDBGater.Repl.Console do
       e -> IO.puts("#{CF.red_on_black()}❌ Failed to stop producer: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp list_producers do
     IO.puts("\n#{CF.bright_blue_on_black()}📋 Active Producers#{CF.reset()}")
     # This would require extending the Producer module to track active producers
-    IO.puts("#{CF.yellow_on_black()}ℹ️  Producer listing requires extension of the Producer module#{CF.reset()}")
+    IO.puts(
+      "#{CF.yellow_on_black()}ℹ️  Producer listing requires extension of the Producer module#{CF.reset()}"
+    )
   end
-  
+
   # ========== Subscription Functions ==========
-  
+
   defp create_subscription do
     IO.puts("\n#{CF.bright_green_on_black()}📡 Creating Subscription#{CF.reset()}")
     subscription_name = IO.gets("Enter subscription name: ") |> String.trim()
     stream = IO.gets("Enter stream name: ") |> String.trim()
     start_from = IO.gets("Start from version (default 0): ") |> String.trim()
     start_from = if start_from == "", do: 0, else: String.to_integer(start_from)
-    
+
     try do
       Repl.start_subscriber_for_stream(subscription_name, stream, start_from)
       IO.puts("#{CF.green_on_black()}✅ Subscription '#{subscription_name}' created#{CF.reset()}")
     rescue
-      e -> IO.puts("#{CF.red_on_black()}❌ Failed to create subscription: #{inspect(e)}#{CF.reset()}")
+      e ->
+        IO.puts("#{CF.red_on_black()}❌ Failed to create subscription: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp list_subscriptions do
     IO.puts("\n#{CF.bright_blue_on_black()}📋 Active Subscriptions#{CF.reset()}")
-    
+
     case API.get_subscriptions(Repl.store()) do
       {:ok, subscriptions} ->
         if subscriptions == [] do
           IO.puts("#{CF.yellow_on_black()}⚠️  No active subscriptions#{CF.reset()}")
         else
           IO.puts("#{CF.cyan_on_black()}Subscriptions:#{CF.reset()}")
-          subscriptions |> Enum.each(fn sub ->
+
+          subscriptions
+          |> Enum.each(fn sub ->
             IO.puts("  • #{inspect(sub, pretty: true)}")
           end)
         end
-      
+
       {:error, reason} ->
-        IO.puts("#{CF.red_on_black()}❌ Failed to get subscriptions: #{inspect(reason)}#{CF.reset()}")
+        IO.puts(
+          "#{CF.red_on_black()}❌ Failed to get subscriptions: #{inspect(reason)}#{CF.reset()}"
+        )
     end
   end
-  
+
   # ========== Data Management Functions ==========
-  
+
   defp view_stream_data do
     IO.puts("\n#{CF.bright_blue_on_black()}📈 View Stream Data#{CF.reset()}")
-    
+
     case API.get_streams(Repl.store()) do
       {:ok, streams} ->
         IO.puts("#{CF.cyan_on_black()}Available streams:#{CF.reset()}")
-        streams |> Enum.with_index(1) |> Enum.each(fn {stream, i} ->
+
+        streams
+        |> Enum.with_index(1)
+        |> Enum.each(fn {stream, i} ->
           IO.puts("  #{i}. #{stream}")
         end)
-        
+
         stream = IO.gets("Enter stream name: ") |> String.trim()
         count = IO.gets("Number of events to fetch (default 10): ") |> String.trim()
         count = if count == "", do: 10, else: String.to_integer(count)
-        
+
         case API.get_events(Repl.store(), stream, 0, count, :forward) do
           {:ok, events} ->
             IO.puts("\n#{CF.green_on_black()}📄 Events from '#{stream}':#{CF.reset()}")
-            events |> Enum.each(fn event ->
+
+            events
+            |> Enum.each(fn event ->
               IO.puts("#{CF.yellow_on_black()}#{inspect(event, pretty: true)}#{CF.reset()}")
             end)
-          
+
           {:error, reason} ->
             IO.puts("#{CF.red_on_black()}❌ Failed to get events: #{inspect(reason)}#{CF.reset()}")
         end
-      
+
       {:error, reason} ->
         IO.puts("#{CF.red_on_black()}❌ Failed to get streams: #{inspect(reason)}#{CF.reset()}")
     end
   end
-  
+
   defp append_events_manually do
     IO.puts("\n#{CF.bright_green_on_black()}📝 Append Events Manually#{CF.reset()}")
     stream = IO.gets("Enter stream name: ") |> String.trim()
     count = IO.gets("Number of events to append (default 5): ") |> String.trim()
     count = if count == "", do: 5, else: String.to_integer(count)
-    
+
     case Repl.append(stream, count) do
       {:ok, events, event_count} ->
-        IO.puts("#{CF.green_on_black()}✅ Appended #{event_count} events to '#{stream}'#{CF.reset()}")
+        IO.puts(
+          "#{CF.green_on_black()}✅ Appended #{event_count} events to '#{stream}'#{CF.reset()}"
+        )
+
         IO.puts("#{CF.cyan_on_black()}Latest events:#{CF.reset()}")
-        events |> Enum.take(3) |> Enum.each(fn event ->
+
+        events
+        |> Enum.take(3)
+        |> Enum.each(fn event ->
           IO.puts("  • #{inspect(event, pretty: true)}")
         end)
-      
+
       {:error, reason} ->
         IO.puts("#{CF.red_on_black()}❌ Failed to append events: #{inspect(reason)}#{CF.reset()}")
     end
   end
-  
+
   defp get_cluster_status do
     IO.puts("\n#{CF.bright_blue_on_black()}🔗 Cluster Status#{CF.reset()}")
-    
+
     try do
       gateway_pids = API.gateway_worker_pids()
-      IO.puts("#{CF.green_on_black()}Active gateway workers: #{length(gateway_pids)}#{CF.reset()}")
-      gateway_pids |> Enum.each(fn pid ->
+
+      IO.puts(
+        "#{CF.green_on_black()}Active gateway workers: #{length(gateway_pids)}#{CF.reset()}"
+      )
+
+      gateway_pids
+      |> Enum.each(fn pid ->
         IO.puts("  • #{inspect(pid)}")
       end)
     rescue
-      e -> IO.puts("#{CF.red_on_black()}❌ Failed to get cluster status: #{inspect(e)}#{CF.reset()}")
+      e ->
+        IO.puts("#{CF.red_on_black()}❌ Failed to get cluster status: #{inspect(e)}#{CF.reset()}")
     end
   end
-  
+
   defp exit_console do
-    IO.puts("\n#{CF.bright_red_on_black()}👋 Shutting down ExESDB Interactive Console...#{CF.reset()}")
-    
+    IO.puts(
+      "\n#{CF.bright_red_on_black()}👋 Shutting down ExESDB Interactive Console...#{CF.reset()}"
+    )
+
     # Clean up observers
     observers = :ets.tab2list(@observer_registry)
-    observers |> Enum.each(fn {name, {_type, _selector, pid}} ->
+
+    observers
+    |> Enum.each(fn {name, {_type, _selector, pid}} ->
       if Process.alive?(pid) do
         Process.exit(pid, :kill)
         IO.puts("#{CF.yellow_on_black()}🛑 Stopped observer: #{name}#{CF.reset()}")
       end
     end)
-    
+
     :ets.delete(@observer_registry)
     IO.puts("#{CF.green_on_black()}✅ Console shut down successfully!#{CF.reset()}")
     System.halt()
   end
-  
+
   # ========== Helper Functions ==========
-  
+
   defp register_observer(name, type, selector, pid) do
     :ets.insert(@observer_registry, {name, {type, selector, pid}})
   end
-  
+
   defp monitor_process(pid, name) do
     ref = Process.monitor(pid)
-    
+
     receive do
       {:DOWN, ^ref, :process, ^pid, reason} ->
-        IO.puts("\n#{CF.red_on_black()}💀 Observer '#{name}' stopped: #{inspect(reason)}#{CF.reset()}")
+        IO.puts(
+          "\n#{CF.red_on_black()}💀 Observer '#{name}' stopped: #{inspect(reason)}#{CF.reset()}"
+        )
+
         :ets.delete(@observer_registry, name)
     after
       100 ->
