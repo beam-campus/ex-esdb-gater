@@ -335,27 +335,41 @@ defmodule ExESDBGater.API do
         {:stream_backward, store, stream_id, start_version, count}
       )
 
-  defp maybe_add_store_for_node(stores, %{id: maybe_store_id} = maybe_store, maybe_node) do
-    case Enum.find(stores, fn %{store_id: id, node: node} ->
+  defp maybe_add_store_for_node([], maybe_store, maybe_node) do
+    Logger.info(
+      Themes.api(
+        self(),
+        "Registering first store [#{inspect(maybe_store)}] on node [#{inspect(maybe_node)}]"
+      )
+    )
+
+    store_with_node = %{store: maybe_store, node: maybe_node}
+
+    [store_with_node]
+  end
+
+  defp maybe_add_store_for_node(stores, %{store_id: maybe_store_id} = maybe_store, maybe_node) do
+    case stores
+         |> Enum.find(fn %{store: %{store_id: id}, node: node} ->
            id == maybe_store_id && node == maybe_node
          end) do
       nil ->
         Logger.info(
           Themes.api(
             self(),
-            "Registering store [#{inspect(maybe_store_id)}] on node [#{inspect(maybe_node)}]"
+            "Registering store [#{inspect(maybe_store)}] on node [#{inspect(maybe_node)}]"
           )
         )
 
-        store_with_node = %{maybe_store | node: maybe_node}
+        store_with_node = %{store: maybe_store, node: maybe_node}
 
         [store_with_node | stores]
 
-      %{store_id: store_id, node: node} ->
+      %{store: store, node: node} ->
         Logger.warning(
           Themes.api(
             self(),
-            "Store [#{inspect(store_id)}] on node [#{inspect(node)}] already registered"
+            "Store [#{inspect(store)}] on node [#{inspect(node)}] already registered"
           )
         )
 
@@ -365,10 +379,10 @@ defmodule ExESDBGater.API do
 
   ############ CALLBACKS ############
   @impl true
-  def handle_cast({:register_store, store, node}, %{stores: stores} = state) do
+  def handle_cast({:register_store, store_config, node}, %{stores: stores} = state) do
     new_stores =
       stores
-      |> maybe_add_store_for_node(store, node)
+      |> maybe_add_store_for_node(store_config, node)
 
     state = %{state | stores: new_stores}
 
@@ -377,11 +391,12 @@ defmodule ExESDBGater.API do
 
   @impl true
   def handle_cast(
-        {:unregister_store, %{store_id: gone_id}, gone_node},
+        {:unregister_store, %{store_id: gone_id} = _store_config, gone_node},
         %{stores: stores} = state
       ) do
     new_stores =
-      Enum.filter(stores, fn %{store_id: id, node: node} ->
+      stores
+      |> Enum.filter(fn %{store: %{store_id: id}, node: node} ->
         id != gone_id || node != gone_node
       end)
 

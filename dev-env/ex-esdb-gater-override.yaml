@@ -6,9 +6,9 @@ services:
     # Enhanced environment for cluster operation
     environment:
       # Base configuration
-      EX_ESDB_COOKIE: ${REG_GH_CLIQUE}
-      EX_ESDB_CLUSTER_SECRET: ${REG_GH_CLUSTER_SECRET}
-      #      EX_ESDB_GOSSIP_MULTICAST_ADDR: ${REG_GH_GOSSIP_MULTICAST_ADDR}
+      EX_ESDB_COOKIE: ${EX_ESDB_COOKIE}
+      EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
+      EX_ESDB_GOSSIP_MULTICAST_ADDR: ${EX_ESDB_GOSSIP_MULTICAST_ADDR}
 
       # Cluster-specific settings
       # EX_ESDB_GATER_NODE_NAME: "gater@gater"

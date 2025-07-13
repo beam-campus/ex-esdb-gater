@@ -10,9 +10,9 @@ services:
     networks:
       - ex-esdb-net
     environment:
-      RELEASE_COOKIE: ${REG_GH_CLIQUE}
-      EX_ESDB_COOKIE: ${REG_GH_CLIQUE}
-      EX_ESDB_CLUSTER_SECRET: ${REG_GH_CLUSTER_SECRET}
+      RELEASE_COOKIE: ${EX_ESDB_COOKIE}
+      EX_ESDB_COOKIE: ${EX_ESDB_COOKIE}
+      EX_ESDB_CLUSTER_SECRET: ${EX_ESDB_CLUSTER_SECRET}
     stop_grace_period: 10s
 
 networks:
