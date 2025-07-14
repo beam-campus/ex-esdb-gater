@@ -59,7 +59,7 @@ defmodule ExESDBGater.ClusterMonitor do
 
   @impl true
   def handle_info({:nodeup, node}, state) do
-    IO.puts(Themes.cluster_monitor(self(), "🟢 Connected to cluster node: #{inspect(node)}"))
+    IO.puts(Themes.cluster_monitor(self(), "🟢 Connected to cluster node: #{node}"))
     IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
 
     # Check if this is an ExESDB node specifically
@@ -69,7 +69,7 @@ defmodule ExESDBGater.ClusterMonitor do
       IO.puts(
         Themes.cluster_monitor(
           self(),
-          "✅ Successfully connected to ExESDB cluster node: #{inspect(node)}"
+          "✅ Successfully connected to ExESDB cluster node: #{node}"
         )
       )
 
@@ -82,7 +82,7 @@ defmodule ExESDBGater.ClusterMonitor do
 
   @impl true
   def handle_info({:nodedown, node}, state) do
-    IO.puts(Themes.cluster_monitor(self(), "🔴 Disconnected from cluster node: #{inspect(node)}"))
+    IO.puts(Themes.cluster_monitor(self(), "🔴 Disconnected from cluster node: #{node}"))
     IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
 
     # Check cached information for the disconnected node
@@ -90,7 +90,7 @@ defmodule ExESDBGater.ClusterMonitor do
       IO.puts(
         Themes.cluster_monitor(
           self(),
-          "❌ Lost connection to ExESDB cluster node: #{inspect(node)}"
+          "❌ Lost connection to ExESDB cluster node: #{node}"
         )
       )
     end
@@ -135,18 +135,31 @@ defmodule ExESDBGater.ClusterMonitor do
   end
 
   defp perform_ex_esdb_check(node) do
-    # Use RPC to check if the ex_esdb application is running on the node
-    # This is much more reliable than checking node names
-    case :rpc.call(node, :application, :which_applications, [], 5_000) do
+    # Use shorter timeout and handle failures gracefully
+    case :rpc.call(node, :application, :which_applications, [], 2_000) do
+      {:badrpc, :timeout} ->
+        Logger.debug("RPC timeout for node #{node}, will retry later")
+        false
+
+      {:badrpc, :nodedown} ->
+        Logger.debug("Node #{node} is down, removing from cache")
+        false
+
       {:badrpc, reason} ->
-        Logger.debug("RPC call failed for node #{inspect(node)}: #{inspect(reason)}")
+        Logger.debug("RPC call failed for node #{node}: #{inspect(reason)}")
         false
 
       apps when is_list(apps) ->
-        apps
-        |> Enum.any?(fn {app, _, _} -> app == :ex_esdb end)
+        result = apps |> Enum.any?(fn {app, _, _} -> app == :ex_esdb end)
 
-      _ ->
+        if result do
+          Logger.debug("Confirmed #{node} is running ExESDB")
+        end
+
+        result
+
+      unexpected ->
+        Logger.warning("Unexpected RPC response from #{node}: #{inspect(unexpected)}")
         false
     end
   end

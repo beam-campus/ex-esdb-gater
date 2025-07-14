@@ -353,10 +353,43 @@ defmodule ExESDBGater.API do
   ################## PLUMBING ##################
   @impl true
   def init(opts) do
-    register_with_swarm(gater_api_name())
-    IO.puts(Themes.api(self(), "is UP!"))
+    # Delay Swarm registration until LibCluster is stable
+    Process.send_after(self(), :register_with_swarm, 2_000)
+    IO.puts(Themes.api(self(), "is UP! (Swarm registration pending)"))
 
-    {:ok, opts}
+    # Convert opts to map and add swarm_registered flag
+    state =
+      opts
+      |> Keyword.put(:swarm_registered, false)
+
+    {:ok, state}
+  end
+
+  @impl true
+  def handle_info(:register_with_swarm, state) do
+    case register_with_swarm(gater_api_name()) do
+      :ok ->
+        Logger.info("#{Themes.api(self(), "Successfully registered with Swarm")}")
+
+        {:noreply,
+         state
+         |> Keyword.put(:swarm_registered, true)}
+
+      {:error, reason} ->
+        Logger.warning(
+          "#{Themes.api(self(), "Swarm registration failed: #{inspect(reason)}, retrying in 5s")}"
+        )
+
+        # Retry registration after 5 seconds
+        Process.send_after(self(), :register_with_swarm, 5_000)
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_info(msg, state) do
+    Logger.debug("#{Themes.api(self(), "Received unexpected message: #{inspect(msg)}")}")
+    {:noreply, state}
   end
 
   def child_spec(opts),
