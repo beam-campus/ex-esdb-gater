@@ -353,6 +353,9 @@ defmodule ExESDBGater.API do
   ################## PLUMBING ##################
   @impl true
   def init(opts) do
+    # Handle the case where opts might be nil (no configuration provided)
+    opts = opts || []
+    
     # Delay Swarm registration until LibCluster is stable
     Process.send_after(self(), :register_with_swarm, 2_000)
     IO.puts(Themes.api(self(), "is UP! (Swarm registration pending)"))

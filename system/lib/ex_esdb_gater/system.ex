@@ -13,6 +13,8 @@ defmodule ExESDBGater.System do
 
   @impl Supervisor
   def init(opts) do
+    # Handle the case where opts might be nil (no configuration provided)
+    opts = opts || []
     pub_sub = Keyword.get(opts, :pub_sub)
     topologies = Application.get_env(:libcluster, :topologies) || []
 
