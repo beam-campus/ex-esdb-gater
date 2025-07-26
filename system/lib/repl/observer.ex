@@ -10,7 +10,6 @@ defmodule ExESDBGater.Repl.Observer do
 
   require Logger
   alias ExESDBGater.API, as: API
-  alias ExESDBGater.Options, as: Options
   alias ExESDBGater.Repl.Themes, as: Themes
 
   @impl true
@@ -39,7 +38,6 @@ defmodule ExESDBGater.Repl.Observer do
   @impl true
   def init(args) do
     store = store(args)
-    pubsub = pubsub(args)
     selector = selector(args)
     type = type(args)
     name = name(args)
@@ -50,16 +48,13 @@ defmodule ExESDBGater.Repl.Observer do
       store
       |> API.save_subscription(type, selector, name)
 
-    :ok =
-      pubsub
-      |> Phoenix.PubSub.subscribe(topic)
+    :ok = Phoenix.PubSub.subscribe(:ex_esdb_pubsub, topic)
 
     {:ok, args}
   end
 
   def start_link(args) do
     store = store(args)
-    pubsub = pubsub(args)
     selector = selector(args)
     name = name(args)
 
@@ -68,7 +63,6 @@ defmodule ExESDBGater.Repl.Observer do
     args =
       args
       |> Keyword.put(:store, store)
-      |> Keyword.put(:pubsub, pubsub)
 
     GenServer.start_link(
       __MODULE__,
@@ -117,6 +111,5 @@ defmodule ExESDBGater.Repl.Observer do
   defp store(args), do: Keyword.get(args, :store, :reg_gh)
   defp type(args), do: Keyword.get(args, :type, :by_stream)
   defp selector(args), do: Keyword.get(args, :selector, "$all")
-  defp pubsub(args), do: Keyword.get(args, :pubsub, Options.pub_sub())
   defp name(args), do: Keyword.get(args, :name, "transient")
 end

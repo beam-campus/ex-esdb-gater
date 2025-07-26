@@ -12,43 +12,18 @@ defmodule ExESDBGater.OptionsTest do
       try do
         config = Options.api_env()
         assert is_list(config)
-        assert config[:connect_to] == node()
-        assert config[:pub_sub] == :ex_esdb_pubsub
+        assert config == []
       after
         # Restore original config
         Application.put_env(:ex_esdb_gater, :api, original_config)
       end
     end
 
-    test "default_config returns proper default values" do
+    test "default_config returns empty list" do
       config = Options.default_config()
       assert is_list(config)
-      assert config[:connect_to] == node()
-      assert config[:pub_sub] == :ex_esdb_pubsub
+      assert config == []
     end
-
-    test "connect_to returns default when no config is provided" do
-      original_config = Application.get_env(:ex_esdb_gater, :api)
-      Application.put_env(:ex_esdb_gater, :api, nil)
-
-      try do
-        result = Options.connect_to()
-        assert result == node()
-      after
-        Application.put_env(:ex_esdb_gater, :api, original_config)
-      end
-    end
-
-    test "pub_sub returns default when no config is provided" do
-      original_config = Application.get_env(:ex_esdb_gater, :api)
-      Application.put_env(:ex_esdb_gater, :api, nil)
-
-      try do
-        result = Options.pub_sub()
-        assert result == :ex_esdb_pubsub
-      after
-        Application.put_env(:ex_esdb_gater, :api, original_config)
-      end
     end
   end
 

@@ -9,20 +9,18 @@ defmodule ExESDBGater.System do
   alias ExESDBGater.LibClusterHelper, as: LibClusterHelper
   alias ExESDBGater.Themes, as: Themes
 
-  alias BCUtils.PubSubManager
-
   @impl Supervisor
   def init(opts) do
     # Handle the case where opts might be nil (no configuration provided)
     opts = opts || []
-    pub_sub = Keyword.get(opts, :pub_sub)
     topologies = Application.get_env(:libcluster, :topologies) || []
 
     children =
       [
         LibClusterHelper.maybe_add_libcluster(topologies),
         {ExESDBGater.ClusterMonitor, opts},
-        maybe_add_pubsub(pub_sub),
+        # Start PubSub system
+        {ExESDBGater.PubSubSystem, opts},
         {ExESDBGater.API, opts}
       ]
       # Remove nil entries
@@ -49,8 +47,4 @@ defmodule ExESDBGater.System do
       shutdown: 5000
     }
 
-  # Helper function to conditionally add Phoenix.PubSub using PubSubManager
-  defp maybe_add_pubsub(pub_sub_name) do
-    PubSubManager.maybe_child_spec(pub_sub_name)
-  end
 end
