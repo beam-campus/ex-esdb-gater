@@ -8,5 +8,4 @@ config :ex_unit,
   logger: true
 
 config :ex_esdb_gater, :api,
-  connect_to: "ex_esdb@arch00",
   pub_sub: :ex_esdb_pub_sub

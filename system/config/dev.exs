@@ -21,4 +21,3 @@ config :logger, :console,
 
 config :ex_esdb_gater, :logger, level: :debug
 
-config :ex_esdb_gater, :api, pub_sub: :ex_esdb_pubsub

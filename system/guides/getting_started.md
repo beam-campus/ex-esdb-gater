@@ -120,7 +120,6 @@ export RELEASE_COOKIE="your_cluster_cookie"
 
 # Gateway configuration
 export EX_ESDB_GATER_CONNECT_TO="target_node@hostname"
-export EX_ESDB_PUB_SUB="ex_esdb_pubsub"
 
 # Logging
 export LOG_LEVEL="debug"
@@ -153,7 +152,6 @@ ExESDB Gater configuration is handled through environment variables and Elixir c
 
 | Variable                 | Description                   | Default           |
 | ------------------------ | ----------------------------- | ----------------- |
-| `EX_ESDB_PUB_SUB`        | PubSub process name           | `:ex_esdb_pubsub` |
 | `EX_ESDB_CLUSTER_SECRET` | Cluster authentication secret | -                 |
 | `EX_ESDB_COOKIE`         | Erlang distribution cookie    | -                 |
 | `RELEASE_COOKIE`         | Release distribution cookie   | -                 |
@@ -180,14 +178,6 @@ config :libcluster,
 ```
 
 ### Advanced Configuration
-
-#### Custom PubSub Configuration
-
-```elixir
-config :ex_esdb_gater, :api,
-  connect_to: node(),
-  pub_sub: :my_custom_pubsub
-```
 
 #### Network Configuration
 

@@ -1,7 +1,7 @@
 defmodule ExESDBGater.Config do
   @moduledoc """
   Configuration validation and normalization for ExESDBGater.
-  
+
   This module provides standardized configuration handling with proper validation,
   error handling, and normalization to ensure consistent behavior across the system.
   """
@@ -13,9 +13,9 @@ defmodule ExESDBGater.Config do
 
   @doc """
   Validates and normalizes configuration for ExESDBGater.
-  
+
   ## Options
-  
+
   * `:cluster_mode` - Whether to run in cluster mode (default: `false`)
   * `:port` - Port to listen on for HTTP API (default: `4001`)
   * `:max_connections` - Maximum number of concurrent connections (default: `1000`)
@@ -23,19 +23,19 @@ defmodule ExESDBGater.Config do
   * `:use_libcluster` - Whether to use libcluster for node discovery (default: `true`)
   * `:connection_retry_interval` - Interval between connection retries in ms (default: `5000`)
   * `:health_check_interval` - Interval for health checks in ms (default: `30000`)
-  
+
   ## Examples
-  
+
       iex> ExESDBGater.Config.validate([port: 4001])
       {:ok, %{port: 4001, cluster_mode: false, ...}}
   """
   @spec validate(config()) :: {:ok, gater_config()} | {:error, {atom(), term()}}
   def validate(config) when is_list(config) do
-    with {:ok, normalized_config} <- normalize_config(config) do
-      {:ok, normalized_config}
+    try do
+      normalize_config(config)
+    rescue
+      error -> {:error, {:validation_error, error}}
     end
-  rescue
-    error -> {:error, {:validation_error, error}}
   end
 
   @doc """
@@ -58,11 +58,15 @@ defmodule ExESDBGater.Config do
   @spec port(config()) :: non_neg_integer()
   def port(config) do
     case get_config_value(config, :port, "EXESDB_GATER_PORT") do
-      nil -> 4001
-      value when is_integer(value) and value > 0 and value <= 65535 -> value
+      nil ->
+        4001
+
+      value when is_integer(value) and value > 0 and value <= 65_535 ->
+        value
+
       value when is_binary(value) ->
         case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 and int_val <= 65535 -> int_val
+          {int_val, ""} when int_val > 0 and int_val <= 65_535 -> int_val
           _ -> raise ArgumentError, "port must be a valid port number (1-65535)"
         end
     end
@@ -74,8 +78,12 @@ defmodule ExESDBGater.Config do
   @spec max_connections(config()) :: pos_integer()
   def max_connections(config) do
     case get_config_value(config, :max_connections, "EXESDB_GATER_MAX_CONNECTIONS") do
-      nil -> 1000
-      value when is_integer(value) and value > 0 -> value
+      nil ->
+        1000
+
+      value when is_integer(value) and value > 0 ->
+        value
+
       value when is_binary(value) ->
         case Integer.parse(value) do
           {int_val, ""} when int_val > 0 -> int_val
@@ -90,8 +98,12 @@ defmodule ExESDBGater.Config do
   @spec pool_size(config()) :: pos_integer()
   def pool_size(config) do
     case get_config_value(config, :pool_size, "EXESDB_GATER_POOL_SIZE") do
-      nil -> 10
-      value when is_integer(value) and value > 0 -> value
+      nil ->
+        10
+
+      value when is_integer(value) and value > 0 ->
+        value
+
       value when is_binary(value) ->
         case Integer.parse(value) do
           {int_val, ""} when int_val > 0 -> int_val
@@ -119,9 +131,17 @@ defmodule ExESDBGater.Config do
   """
   @spec connection_retry_interval(config()) :: pos_integer()
   def connection_retry_interval(config) do
-    case get_config_value(config, :connection_retry_interval, "EXESDB_GATER_CONNECTION_RETRY_INTERVAL") do
-      nil -> 5000
-      value when is_integer(value) and value > 0 -> value
+    case get_config_value(
+           config,
+           :connection_retry_interval,
+           "EXESDB_GATER_CONNECTION_RETRY_INTERVAL"
+         ) do
+      nil ->
+        5000
+
+      value when is_integer(value) and value > 0 ->
+        value
+
       value when is_binary(value) ->
         case Integer.parse(value) do
           {int_val, ""} when int_val > 0 -> int_val
@@ -136,8 +156,12 @@ defmodule ExESDBGater.Config do
   @spec health_check_interval(config()) :: pos_integer()
   def health_check_interval(config) do
     case get_config_value(config, :health_check_interval, "EXESDB_GATER_HEALTH_CHECK_INTERVAL") do
-      nil -> 30000
-      value when is_integer(value) and value > 0 -> value
+      nil ->
+        30_000
+
+      value when is_integer(value) and value > 0 ->
+        value
+
       value when is_binary(value) ->
         case Integer.parse(value) do
           {int_val, ""} when int_val > 0 -> int_val
@@ -153,12 +177,14 @@ defmodule ExESDBGater.Config do
   def validate_libcluster_config(config) do
     if use_libcluster?(config) do
       case Application.get_env(:libcluster, :topologies) do
-        nil -> 
+        nil ->
           Logger.warning("libcluster is enabled but no topologies configured")
           {:ok, config}
+
         topologies when is_list(topologies) ->
           Logger.info("libcluster enabled with #{length(topologies)} topologies")
           {:ok, config}
+
         invalid ->
           {:error, {:invalid_libcluster_config, invalid}}
       end
@@ -179,7 +205,7 @@ defmodule ExESDBGater.Config do
       connection_retry_interval: connection_retry_interval(config),
       health_check_interval: health_check_interval(config)
     }
-    
+
     with {:ok, _} <- validate_libcluster_config(config) do
       {:ok, normalized}
     end
