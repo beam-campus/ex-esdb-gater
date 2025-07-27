@@ -6,7 +6,18 @@ defmodule ExESDBGater.PubSubSystem do
 
   alias ExESDBGater.PubSubManager
 
-  @pubsub_instances [:ex_esdb_events, :ex_esdb_system, :ex_esdb_logging]
+  @pubsub_instances [
+    :ex_esdb_events,      # Core event data
+    :ex_esdb_system,      # General system events
+    :ex_esdb_logging,     # Log aggregation
+    :ex_esdb_health,      # Health monitoring
+    :ex_esdb_metrics,     # Performance metrics
+    :ex_esdb_security,    # Security events (auth, access violations)
+    :ex_esdb_audit,       # Audit trail (compliance, who did what)
+    :ex_esdb_alerts,      # Critical alerts and notifications
+    :ex_esdb_diagnostics, # Deep diagnostic information
+    :ex_esdb_lifecycle    # Process lifecycle events
+  ]
 
   def start_link(opts) do
     name = Keyword.get(opts, :name, __MODULE__)

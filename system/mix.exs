@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.2.1"
+  @version "0.3.0"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -116,6 +116,10 @@ defmodule ExESDBGater.MixProject do
       extras: [
         "ADR.md",
         "CHANGELOG.md",
+        "PUBSUB_ARCHITECTURE.md": [
+          filename: "pubsub-architecture",
+          title: "PubSub Architecture"
+        ],
         "guides/getting_started.md": [
           filename: "getting-started",
           title: "Getting Started"
