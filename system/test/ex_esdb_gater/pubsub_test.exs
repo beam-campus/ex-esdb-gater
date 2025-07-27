@@ -3,7 +3,18 @@ defmodule ExESDBGater.PubSubTest do
 
   alias Phoenix.PubSub
 
-  @pubsub_instances [:ex_esdb_events, :ex_esdb_system, :ex_esdb_logging]
+  @pubsub_instances [
+    :ex_esdb_events,      # Core event data
+    :ex_esdb_system,      # General system events
+    :ex_esdb_logging,     # Log aggregation
+    :ex_esdb_health,      # Health monitoring
+    :ex_esdb_metrics,     # Performance metrics
+    :ex_esdb_security,    # Security events
+    :ex_esdb_audit,       # Audit trail
+    :ex_esdb_alerts,      # Critical alerts
+    :ex_esdb_diagnostics, # Deep diagnostic information
+    :ex_esdb_lifecycle    # Process lifecycle events
+  ]
 
   setup do
     # Start supervisor with unique name
