@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.3.0"
+  @version "0.3.2"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -91,7 +91,7 @@ defmodule ExESDBGater.MixProject do
       {:ex_doc, "~> 0.37", only: [:dev], runtime: false},
       {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:bc_utils, "~> 0.14.0"},
+      {:bc_utils, "~> 0.15.0"},
       {:swarm, "~> 3.4"},
       {:phoenix_pubsub, "~> 2.1"},
       {:libcluster, "~> 3.5"},
