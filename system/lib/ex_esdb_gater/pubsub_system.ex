@@ -1,6 +1,18 @@
 defmodule ExESDBGater.PubSubSystem do
   @moduledoc """
   Supervisor for all PubSub instances used by ExESDBGater.
+  
+  This supervisor is designed to be a singleton per node - it manages
+  global PubSub instances that are shared across all ExESDB systems
+  running on the same node.
+  
+  Multiple ExESDB systems can safely attempt to start this supervisor;
+  if it's already running, the start_link call will return {:ok, pid}
+  with the existing supervisor's pid rather than failing.
+  
+  This enables umbrella applications and multi-store setups where
+  multiple ExESDB.System instances need to share the same PubSub
+  infrastructure.
   """
   use Supervisor
 
@@ -21,7 +33,17 @@ defmodule ExESDBGater.PubSubSystem do
 
   def start_link(opts) do
     name = Keyword.get(opts, :name, __MODULE__)
-    Supervisor.start_link(__MODULE__, opts, name: name)
+
+    case Supervisor.start_link(__MODULE__, opts, name: name) do
+      {:ok, pid} ->
+        {:ok, pid}
+      {:error, {:already_started, pid}} ->
+        # PubSubSystem is designed to be a singleton - if it's already started,
+        # that's exactly what we want. Return success with the existing pid.
+        {:ok, pid}
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @impl true

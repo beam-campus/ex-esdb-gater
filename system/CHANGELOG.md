@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-08-12
+
+### Fixed
+- **PubSubSystem Umbrella Compatibility**: Fixed issue where multiple ExESDB.System instances in the same node (such as in umbrella applications) would fail to start due to PubSubSystem supervisor name conflicts
+- PubSubSystem now gracefully handles `{:already_started, pid}` errors by returning `{:ok, pid}`, enabling proper singleton behavior
+- Added comprehensive documentation explaining PubSubSystem singleton design and umbrella application compatibility
+
+### Technical Details
+- Updated `ExESDBGater.PubSubSystem.start_link/1` to handle existing supervisor gracefully
+- This enables umbrella applications with multiple stores to share the same PubSub infrastructure as intended
+- No breaking changes - existing single-store applications continue to work unchanged
+
 ## [0.3.0] - 2025-07-27
 
 ### Added

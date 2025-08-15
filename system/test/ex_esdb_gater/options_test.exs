@@ -24,7 +24,6 @@ defmodule ExESDBGater.OptionsTest do
       assert is_list(config)
       assert config == []
     end
-    end
   end
 
   describe "system initialization resilience" do

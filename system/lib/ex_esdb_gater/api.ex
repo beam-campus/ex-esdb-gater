@@ -17,6 +17,40 @@ defmodule ExESDBGater.API do
 
   alias UUIDv7
 
+  ########### HELPER FUNCTIONS ############
+  
+  @doc """
+    Waits for an available worker with exponential backoff retry logic.
+    This prevents Enum.EmptyError when no workers are available yet.
+  """
+  defp wait_for_available_worker(worker_list_func, max_retries \\ 10, base_delay \\ 100) do
+    wait_for_available_worker_retry(worker_list_func, 0, max_retries, base_delay)
+  end
+  
+  defp wait_for_available_worker_retry(worker_list_func, retry_count, max_retries, base_delay) do
+    case worker_list_func.() do
+      [] ->
+        if retry_count >= max_retries do
+          Logger.error("ExESDBGater.API: No workers available after #{max_retries} retries. This may indicate a system startup issue.")
+          raise "No gateway workers available after #{max_retries} retries. Check if ExESDB cluster is properly initialized."
+        else
+          # Exponential backoff: base_delay * 2^retry_count, capped at 5 seconds
+          delay = min(base_delay * :math.pow(2, retry_count), 5_000) |> round()
+          
+          Logger.debug("ExESDBGater.API: No workers available, retrying in #{delay}ms (attempt #{retry_count + 1}/#{max_retries + 1})")
+          :timer.sleep(delay)
+          
+          wait_for_available_worker_retry(worker_list_func, retry_count + 1, max_retries, base_delay)
+        end
+      
+      pids ->
+        if retry_count > 0 do
+          Logger.info("ExESDBGater.API: Found #{length(pids)} available workers after #{retry_count} retries")
+        end
+        Enum.random(pids)
+    end
+  end
+
   ########### API ############
   def gater_api_name,
     do: {:gater_api, :erlang.phash2(UUIDv7.generate())}
@@ -36,10 +70,9 @@ defmodule ExESDBGater.API do
     |> Enum.map(fn {_, pid} -> pid end)
   end
 
-  def random_gater_api,
-    do:
-      get_gater_api_pids()
-      |> Enum.random()
+  def random_gater_api do
+    wait_for_available_worker(fn -> get_gater_api_pids() end)
+  end
 
   @doc """
     Gets a list of all gateway worker pids.
@@ -56,8 +89,7 @@ defmodule ExESDBGater.API do
   """
   @spec random_gateway_worker() :: pid()
   def random_gateway_worker do
-    gateway_worker_pids()
-    |> Enum.random()
+    wait_for_available_worker(fn -> gateway_worker_pids() end)
   end
 
   @spec gateway_worker_pids_for_store(store_id :: atom()) :: list()
@@ -69,8 +101,7 @@ defmodule ExESDBGater.API do
 
   @spec random_gateway_worker_pid_for_store(store_id :: atom()) :: pid()
   def random_gateway_worker_pid_for_store(store_id) do
-    gateway_worker_pids_for_store(store_id)
-    |> Enum.random()
+    wait_for_available_worker(fn -> gateway_worker_pids_for_store(store_id) end)
   end
 
   @doc """
