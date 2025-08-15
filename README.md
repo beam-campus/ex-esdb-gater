@@ -89,12 +89,46 @@ config :libcluster,
   ]
 ```
 
+### Dashboard & Monitoring
+
+#### Web Dashboard
+
+ExESDBGater includes composable dashboard components for real-time cluster monitoring:
+
+- **Real-time Updates**: Live cluster state updates via Phoenix.PubSub
+- **Node Monitoring**: Track node connectivity, health, and uptime
+- **Store Statistics**: Monitor event stores, streams, and subscriptions
+- **Health Indicators**: Visual cluster health status with detailed metrics
+- **Flexible Integration**: Composable components for embedding in Phoenix applications
+
+#### Dashboard Integration
+
+Add to your Phoenix application:
+
+```elixir
+# In your router
+import ExESDBGater.Dashboard
+
+scope "/admin" do
+  dashboard_routes()
+end
+
+# Or embed components
+<.live_component 
+  module={ExESDBGater.Dashboard.ClusterStatus} 
+  id="cluster-status" 
+/>
+```
+
+See `DASHBOARD_INTEGRATION_GUIDE.md` for complete integration instructions.
+
 ### Architecture
 
 #### Components
 
 - **ExESDBGater.API**: Main API interface and request router
 - **ExESDBGater.ClusterMonitor**: Monitors cluster node connections and health
+- **ExESDBGater.Dashboard**: Real-time web dashboard with composable LiveView components
 - **ExESDBGater.System**: Supervisor managing all gateway components
 - **Gateway Workers**: Distributed workers using Swarm for cluster-wide coordination
 - **Phoenix.PubSub**: Event broadcasting and subscription management

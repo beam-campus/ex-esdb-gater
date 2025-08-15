@@ -4,6 +4,104 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2025-08-15
+
+### Added
+- **Structured Message System**: Implemented comprehensive structured messaging framework for secure inter-component communication:
+  - **9 Dedicated Message Modules**: Each PubSub instance now has its own message module with structured payload definitions:
+    - `SystemMessages` - System configuration and lifecycle events
+    - `HealthMessages` - Health monitoring and status checks
+    - `MetricsMessages` - Performance metrics and measurements
+    - `LifecycleMessages` - Process and node lifecycle events
+    - `SecurityMessages` - Security events and access control
+    - `AuditMessages` - Audit trail and compliance events
+    - `AlertMessages` - Critical alerts and notifications
+    - `DiagnosticsMessages` - Deep diagnostic and debugging info
+    - `LoggingMessages` - Log aggregation and distribution
+  - **HMAC Security**: Messages are cryptographically signed using SECRET_KEY_BASE to prevent unauthorized nodes from polluting the cluster
+  - **Structured Payloads**: Well-defined struct-based message payloads with enforced field types and validation
+  - **Broadcasting Helpers**: Secure broadcasting functions with automatic message signing
+  - **Validation Helpers**: Message validation functions for receivers with security verification
+  - **Helper Functions**: Convenient payload creation functions with automatic timestamps
+
+- **Enhanced Dashboard Integration**: Updated cluster dashboard to use new structured message system:
+  - Idiomatic Elixir pattern matching in `handle_info/2` functions
+  - Structured message validation for real-time updates
+  - Backward compatibility with legacy message formats during transition
+  - Enhanced security for dashboard real-time communication
+
+- **Central Message Management**: Added `ExESDBGater.Messages` module for centralized access:
+  - Convenient aliases for all message modules
+  - Dynamic message routing and validation functions
+  - Instance-to-module mapping for programmatic access
+  - Comprehensive usage examples and documentation
+
+### Security
+- **Message Authentication**: All inter-component messages now include HMAC signatures to prevent tampering
+- **Rogue Node Protection**: Cryptographic validation prevents unauthorized nodes from broadcasting false information
+- **Configurable Security**: Works with or without SECRET_KEY_BASE (development vs production environments)
+- **Constant-time Validation**: Uses `:crypto.hash_equals/2` for secure signature comparison
+
+### Changed
+- **Dashboard Message Handling**: Migrated from simple PubSub topics to structured, validated messages
+- **Message Format**: Standardized on Phoenix PubSub pattern `{:message_identifier, payload_struct}`
+- **Security Model**: Enhanced from basic topic-based messaging to cryptographically signed message validation
+
+### Technical Details
+- **Idiomatic Elixir**: Uses proper pattern matching instead of case statements for message handling
+- **Struct-based Payloads**: Each message type has a dedicated struct with field documentation
+- **Topic Conventions**: Clean topic naming without redundant prefixes (e.g., "cluster_health" not "health_cluster_health")
+- **Helper Functions**: Automatic timestamp injection and sensible defaults for message creation
+- **Error Handling**: Comprehensive error handling for invalid messages, missing secrets, and validation failures
+- **Documentation**: Extensive module documentation with usage examples and security considerations
+
+## [0.3.6] - 2025-08-15
+
+### Added
+- **Composable Dashboard Module**: Implemented comprehensive real-time cluster monitoring dashboard with Phoenix LiveView components:
+  - `ExESDBGater.Dashboard` - Main module with data aggregation and helper functions
+  - `ExESDBGater.Dashboard.ClusterLive` - Full-featured dashboard LiveView with real-time cluster monitoring
+  - `ExESDBGater.Dashboard.ClusterStatus` - Compact embeddable LiveComponent widget
+  - Real-time updates via Phoenix.PubSub integration with `ClusterMonitor`
+  - Cluster health indicators with visual status representations
+  - Node monitoring with connectivity status, uptime tracking, and ExESDB node identification
+  - Store statistics including stream counts, subscription counts, and node distribution
+  - Flexible integration patterns: full dashboard routes, embedded widgets, or custom implementations
+
+- **Dashboard Integration Options**:
+  - **Router Integration**: `import ExESDBGater.Dashboard; dashboard_routes()` for complete dashboard routes
+  - **Embedded Widget**: `<.live_component module={ExESDBGater.Dashboard.ClusterStatus} id="cluster-status" />` for compact status display
+  - **Custom Integration**: Direct use of `Dashboard.get_cluster_data()` for custom implementations
+  - **Real-time PubSub**: Subscribe to `"ex_esdb_gater:cluster"` topic for live cluster state updates
+
+- **Enhanced ClusterMonitor**: Extended existing cluster monitoring with PubSub broadcasting:
+  - Real-time cluster state change notifications
+  - Node connection/disconnection events broadcast to dashboard subscribers
+  - Maintains backward compatibility with existing logging functionality
+
+- **Comprehensive Documentation**:
+  - `DASHBOARD_INTEGRATION_GUIDE.md` - Complete integration guide with examples for all usage patterns
+  - Updated `README.md` with dashboard functionality section
+  - Inline module documentation with usage examples
+  - CSS styling guidelines and semantic class structure
+  - Troubleshooting guide and best practices
+
+### Changed
+- **Optional Dependencies**: Added Phoenix LiveView dependencies as optional to avoid forcing web framework choices on consumers:
+  - `phoenix_live_view ~> 1.0` (optional)
+  - `phoenix_html ~> 4.0` (optional) 
+  - `jason ~> 1.2` (optional)
+
+- **ClusterMonitor Enhancement**: Enhanced `ExESDBGater.ClusterMonitor` to broadcast cluster state changes while maintaining existing functionality
+
+### Technical Details
+- **Clean Architecture**: Dashboard follows composable library pattern - no forced Phoenix endpoint or infrastructure dependencies
+- **Flexible Integration**: Hosting applications maintain full control over Phoenix setup, routing, styling, and authentication
+- **Real-time Updates**: Automatic UI updates when nodes connect/disconnect or cluster health changes
+- **No Breaking Changes**: All dashboard functionality is completely optional and doesn't affect existing ExESDBGater usage
+- **Semantic Styling**: Dashboard components use semantic CSS classes for easy customization and theme integration
+- **LiveComponent Pattern**: Proper Phoenix LiveComponent implementation with parent LiveView message forwarding for PubSub updates
+
 ## [0.3.3] - 2025-08-12
 
 ### Fixed

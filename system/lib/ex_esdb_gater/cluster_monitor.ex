@@ -77,7 +77,12 @@ defmodule ExESDBGater.ClusterMonitor do
     end
 
     new_connected = MapSet.put(updated_state.connected_nodes, node)
-    {:noreply, %{updated_state | connected_nodes: new_connected}}
+    final_state = %{updated_state | connected_nodes: new_connected}
+    
+    # Broadcast cluster state change for dashboard
+    broadcast_cluster_state_change(:nodeup, node, is_ex_esdb, final_state)
+    
+    {:noreply, final_state}
   end
 
   @impl true
@@ -86,7 +91,8 @@ defmodule ExESDBGater.ClusterMonitor do
     IO.puts(Themes.cluster_monitor(self(), "📊 Total connected nodes: #{length(Node.list())}"))
 
     # Check cached information for the disconnected node
-    if cached_ex_esdb_node?(node, state) do
+    was_ex_esdb = cached_ex_esdb_node?(node, state)
+    if was_ex_esdb do
       IO.puts(
         Themes.cluster_monitor(
           self(),
@@ -98,8 +104,12 @@ defmodule ExESDBGater.ClusterMonitor do
     # Clean up cache entry for disconnected node and update connected nodes
     updated_cache = Map.delete(state.node_type_cache, node)
     new_connected = MapSet.delete(state.connected_nodes, node)
+    final_state = %{state | connected_nodes: new_connected, node_type_cache: updated_cache}
+    
+    # Broadcast cluster state change for dashboard
+    broadcast_cluster_state_change(:nodedown, node, was_ex_esdb, final_state)
 
-    {:noreply, %{state | connected_nodes: new_connected, node_type_cache: updated_cache}}
+    {:noreply, final_state}
   end
 
   @impl true
@@ -186,5 +196,37 @@ defmodule ExESDBGater.ClusterMonitor do
         _ -> perform_ex_esdb_check(node)
       end
     end)
+  end
+
+  defp broadcast_cluster_state_change(event, node, is_ex_esdb, state) do
+    # Build cluster state message
+    cluster_state = %{
+      event: event,
+      node: node,
+      is_ex_esdb: is_ex_esdb,
+      connected_nodes: MapSet.to_list(state.connected_nodes),
+      total_nodes: length(Node.list()),
+      timestamp: DateTime.utc_now()
+    }
+
+    # Broadcast to dashboard subscribers
+    try do
+      Phoenix.PubSub.broadcast(
+        pubsub_server(),
+        "ex_esdb_gater:cluster",
+        {:cluster_state_changed, cluster_state}
+      )
+    rescue
+      error -> 
+        Logger.debug("Failed to broadcast cluster state change: #{inspect(error)}")
+    end
+  end
+
+  defp pubsub_server do
+    # Try to use the configured PubSub server, fall back to ExESDBGater.PubSub
+    case Application.get_env(:phoenix_pubsub, :name) do
+      nil -> ExESDBGater.PubSub
+      server_name -> server_name
+    end
   end
 end

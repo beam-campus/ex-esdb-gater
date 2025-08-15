@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.3.5"
+  @version "0.4.0"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -98,7 +98,12 @@ defmodule ExESDBGater.MixProject do
       {:protobuf, "~> 0.15"},
       {:gen_retry, "~> 1.4"},
       {:uuidv7, "~> 1.0"},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+
+      # Optional dependencies for dashboard functionality
+      {:phoenix_live_view, "~> 1.0", optional: true},
+      {:phoenix_html, "~> 4.0", optional: true},
+      {:jason, "~> 1.2", optional: true}
     ]
   end
 
