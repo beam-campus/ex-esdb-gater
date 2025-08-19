@@ -4,7 +4,7 @@ defmodule ExESDBGater.MixProject do
 
   @app_name :ex_esdb_gater
   @elixir_version "~> 1.17"
-  @version "0.5.0"
+  @version "0.8.0"
   @source_url "https://github.com/beam-campus/ex-esdb-gater"
   #  @homepage_url "https://github.com/beam-campus/ex-esdb"
   @docs_url "https://hexdocs.pm/ex_esdb_gater"
@@ -50,7 +50,7 @@ defmodule ExESDBGater.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application,
     do: [
-      mod: {ExESDBGater.App, []},
+      mod: {ExESDBGater.Application, []},
       extra_applications:
         [
           :logger,

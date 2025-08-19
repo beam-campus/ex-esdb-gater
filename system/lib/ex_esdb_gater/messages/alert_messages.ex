@@ -13,62 +13,102 @@ defmodule ExESDBGater.Messages.AlertMessages do
 
   alias Phoenix.PubSub
 
+  alias ExESDBGater.MessageHelpers
+
   @pubsub_instance :ex_esdb_alerts
 
   # Message payload structs
 
-  @doc "System alert payload"
   defmodule SystemAlert do
+    @moduledoc """
+    System alert payload
+    """
     defstruct [
-    :alert_id,       # string - unique alert identifier
-    :severity,       # :info | :warning | :error | :critical
-    :category,       # :system | :performance | :security | :data | :network
-    :title,          # string - short alert title
-    :description,    # string - detailed alert description
-    :source,         # string - what generated the alert
-    :node,           # atom - node where alert originated
-    :metadata,       # map - additional alert context
-    :requires_ack,   # boolean - whether alert requires acknowledgment
-    :timestamp       # DateTime.t
-  ]
+      # string - unique alert identifier
+      :alert_id,
+      # :info | :warning | :error | :critical
+      :severity,
+      # :system | :performance | :security | :data | :network
+      :category,
+      # string - short alert title
+      :title,
+      # string - detailed alert description
+      :description,
+      # string - what generated the alert
+      :source,
+      # atom - node where alert originated
+      :node,
+      # map - additional alert context
+      :metadata,
+      # boolean - whether alert requires acknowledgment
+      :requires_ack,
+      # DateTime.t
+      :timestamp
+    ]
   end
 
-  @doc "Alert acknowledgment payload"
   defmodule AlertAck do
+    @moduledoc """
+    Alert acknowledgment payload
+    """
     defstruct [
-    :alert_id,       # string - alert being acknowledged
-    :ack_by,         # string - who acknowledged it
-    :ack_note,       # string - acknowledgment note
-    :resolution,     # string - how the alert was resolved
-    :ack_timestamp,  # DateTime.t - when acknowledged
-    :timestamp       # DateTime.t
-  ]
+      # string - alert being acknowledged
+      :alert_id,
+      # string - who acknowledged it
+      :ack_by,
+      # string - acknowledgment note
+      :ack_note,
+      # string - how the alert was resolved
+      :resolution,
+      # DateTime.t - when acknowledged
+      :ack_timestamp,
+      # DateTime.t
+      :timestamp
+    ]
   end
 
-  @doc "Alert escalation payload"
   defmodule AlertEscalation do
+    @moduledoc """
+    Alert escalation payload
+    """
     defstruct [
-    :alert_id,       # string - alert being escalated
-    :from_level,     # :level1 | :level2 | :level3
-    :to_level,       # :level1 | :level2 | :level3
-    :escalation_reason, # string - why it was escalated
-    :escalated_by,   # string - who escalated it (or "system")
-    :notify_contacts, # [string] - contacts to notify
-    :timestamp       # DateTime.t
-  ]
+      # string - alert being escalated
+      :alert_id,
+      # :level1 | :level2 | :level3
+      :from_level,
+      # :level1 | :level2 | :level3
+      :to_level,
+      # string - why it was escalated
+      :escalation_reason,
+      # string - who escalated it (or "system")
+      :escalated_by,
+      # [string] - contacts to notify
+      :notify_contacts,
+      # DateTime.t
+      :timestamp
+    ]
   end
 
-  @doc "Notification delivery status payload"
   defmodule NotificationStatus do
+    @moduledoc """
+    Notification delivery status payload
+    """
     defstruct [
-    :alert_id,       # string - related alert
-    :delivery_method, # :email | :sms | :webhook | :push
-    :recipient,      # string - who was notified
-    :status,         # :sent | :delivered | :failed | :bounced
-    :error_reason,   # string - failure reason (if failed)
-    :attempts,       # integer - delivery attempts made
-    :timestamp       # DateTime.t
-  ]
+      # string - related alert
+      :alert_id,
+      # :email | :sms | :webhook | :push
+      :delivery_method,
+      # string - who was notified
+      :recipient,
+      # :sent | :delivered | :failed | :bounced
+      :status,
+      # string - failure reason (if failed)
+      :error_reason,
+      # integer - delivery attempts made
+      :attempts,
+      # DateTime.t
+      :timestamp
+    ]
   end
 
   # Broadcasting helpers
@@ -83,7 +123,9 @@ defmodule ExESDBGater.Messages.AlertMessages do
     secure_broadcast(topic, {:alert_acknowledged, payload})
   end
 
-  @doc "Broadcast an alert escalation"
+  @doc """
+    Broadcast an alert escalation
+  """
   def broadcast_alert_escalation(topic, %AlertEscalation{} = payload) do
     secure_broadcast(topic, {:alert_escalated, payload})
   end
@@ -99,7 +141,7 @@ defmodule ExESDBGater.Messages.AlertMessages do
       {:ok, _secret} ->
         secured_message = add_security_signature(message)
         PubSub.broadcast(@pubsub_instance, topic, secured_message)
-      
+
       {:error, :no_secret} ->
         require Logger
         Logger.warning("Broadcasting unsecured message - no SECRET_KEY_BASE configured")
@@ -112,13 +154,13 @@ defmodule ExESDBGater.Messages.AlertMessages do
     case get_secret_key() do
       {:ok, _secret} ->
         expected_signature = generate_signature(original_message)
-        
+
         if :crypto.hash_equals(signature, expected_signature) do
           {:ok, original_message}
         else
           {:error, :invalid_signature}
         end
-      
+
       {:error, :no_secret} ->
         {:error, :no_secret_configured}
     end
@@ -128,7 +170,7 @@ defmodule ExESDBGater.Messages.AlertMessages do
     case get_secret_key() do
       {:ok, _secret} ->
         {:error, :unsecured_message_rejected}
-      
+
       {:error, :no_secret} ->
         require Logger
         Logger.warning("Accepting unsecured message - no SECRET_KEY_BASE configured")
@@ -149,10 +191,10 @@ defmodule ExESDBGater.Messages.AlertMessages do
       title: title,
       description: description,
       source: source,
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       metadata: Keyword.get(opts, :metadata, %{}),
       requires_ack: Keyword.get(opts, :requires_ack, severity in [:error, :critical]),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -163,8 +205,8 @@ defmodule ExESDBGater.Messages.AlertMessages do
       ack_by: ack_by,
       ack_note: Keyword.get(opts, :ack_note),
       resolution: Keyword.get(opts, :resolution),
-      ack_timestamp: Keyword.get(opts, :ack_timestamp, DateTime.utc_now()),
-      timestamp: DateTime.utc_now()
+      ack_timestamp: Keyword.get(opts, :ack_timestamp, MessageHelpers.current_timestamp()),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -177,7 +219,7 @@ defmodule ExESDBGater.Messages.AlertMessages do
       escalation_reason: escalation_reason,
       escalated_by: Keyword.get(opts, :escalated_by, "system"),
       notify_contacts: Keyword.get(opts, :notify_contacts, []),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -190,7 +232,7 @@ defmodule ExESDBGater.Messages.AlertMessages do
       status: status,
       error_reason: Keyword.get(opts, :error_reason),
       attempts: Keyword.get(opts, :attempts, 1),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -218,13 +260,13 @@ defmodule ExESDBGater.Messages.AlertMessages do
     cond do
       secret = Application.get_env(:ex_esdb_gater, :secret_key_base) ->
         {:ok, secret}
-      
+
       secret = System.get_env("SECRET_KEY_BASE") ->
         {:ok, secret}
-      
+
       secret = Application.get_env(:phoenix, :secret_key_base) ->
         {:ok, secret}
-      
+
       true ->
         {:error, :no_secret}
     end

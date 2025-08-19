@@ -12,12 +12,12 @@ defmodule ExESDBGater.Messages.MetricsMessages do
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_metrics
 
   # Message payload structs
 
-  @doc "Performance metric payload"
   defmodule PerformanceMetric do
     defstruct [
     :metric_name,    # atom - name of the metric
@@ -30,7 +30,6 @@ defmodule ExESDBGater.Messages.MetricsMessages do
   ]
   end
 
-  @doc "Throughput metric payload"
   defmodule ThroughputMetric do
     defstruct [
     :operation,      # atom - type of operation
@@ -42,7 +41,6 @@ defmodule ExESDBGater.Messages.MetricsMessages do
   ]
   end
 
-  @doc "Latency metric payload"
   defmodule LatencyMetric do
     defstruct [
     :operation,      # atom - type of operation
@@ -54,7 +52,6 @@ defmodule ExESDBGater.Messages.MetricsMessages do
   ]
   end
 
-  @doc "Resource usage metric payload"
   defmodule ResourceUsage do
     defstruct [
     :resource_type,  # atom - :cpu | :memory | :disk | :network
@@ -66,7 +63,6 @@ defmodule ExESDBGater.Messages.MetricsMessages do
   ]
   end
 
-  @doc "Metric threshold violation payload"
   defmodule MetricAlert do
     defstruct [
     :metric_name,    # atom - name of the metric that violated threshold
@@ -159,10 +155,10 @@ defmodule ExESDBGater.Messages.MetricsMessages do
       metric_name: metric_name,
       value: value,
       unit: unit,
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       component: Keyword.get(opts, :component),
       tags: Keyword.get(opts, :tags, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -175,8 +171,8 @@ defmodule ExESDBGater.Messages.MetricsMessages do
       count: count,
       duration_ms: duration_ms,
       rate_per_sec: rate_per_sec,
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -187,8 +183,8 @@ defmodule ExESDBGater.Messages.MetricsMessages do
       latency_ms: latency_ms,
       percentile: percentile,
       sample_count: sample_count,
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -199,8 +195,8 @@ defmodule ExESDBGater.Messages.MetricsMessages do
       usage_percent: usage_percent,
       total_available: total_available,
       current_used: current_used,
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -212,8 +208,8 @@ defmodule ExESDBGater.Messages.MetricsMessages do
       threshold_value: threshold_value,
       threshold_type: threshold_type,
       severity: severity,
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 

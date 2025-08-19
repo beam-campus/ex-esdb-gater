@@ -4,6 +4,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-08-15
+
+### BREAKING CHANGES  
+- **Package Separation Complete**: Successfully extracted UI and API components into separate packages:
+  - **Dashboard → `ex_esdb_dashboard`**: All Phoenix LiveView dashboard components moved to separate package
+  - **gRPC API → `ex_esdb_grpc`**: EventStore-compatible gRPC API extracted to separate package  
+  - **Core Focus**: `ex_esdb_gater` now focuses purely on cluster logic, messaging, and PubSub infrastructure
+
+### Added
+- **Clean Package Ecosystem**: ExESDB now consists of three focused packages:
+  - 🏗️ **`ex_esdb_gater`** (~> 0.5.0) - Core cluster logic and messaging
+  - 🎨 **`ex_esdb_dashboard`** (~> 0.1.0) - LiveView UI and monitoring  
+  - 🔌 **`ex_esdb_grpc`** (~> 0.1.0) - gRPC API server for external clients
+
+### Removed
+- **Dashboard Components**: Moved to `ex_esdb_dashboard` package:
+  - `ExESDBGater.Dashboard.ClusterLive` → `ExESDBDashboard.ClusterLive`
+  - `ExESDBGater.Dashboard.ClusterStatus` → `ExESDBDashboard.ClusterStatus`  
+  - `ExESDBGater.Dashboard` → `ExESDBDashboard`
+- **gRPC Components**: Extracted to `ex_esdb_grpc` package (previously in experimental repos)
+- **Phoenix Dependencies**: No longer needed in core package
+
+### Fixed
+- **Perfect Umbrella Compatibility**: Core package compiles cleanly without any Phoenix dependencies
+- **Dependency Conflicts**: Each package has only the dependencies it actually needs
+- **Import Conflicts**: No more issues with optional dependencies in business logic apps
+
+### Migration Guide
+#### For Core PubSub/API Usage
+- **No changes required** - all message modules and PubSub functionality unchanged
+- Continue using `{:ex_esdb_gater, "~> 0.5.0"}` as before
+
+#### For Dashboard Users  
+```elixir
+# Old (0.4.x)
+{:ex_esdb_gater, "~> 0.4.0"}
+
+# New (0.5.0+)
+{:ex_esdb_gater, "~> 0.5.0"},
+{:ex_esdb_dashboard, "~> 0.1.0"}
+```
+
+#### For gRPC API Users
+```elixir
+# Add gRPC API server
+{:ex_esdb_gater, "~> 0.5.0"},
+{:ex_esdb_grpc, "~> 0.1.0"}
+```
+
+### Architecture Benefits
+- **🎯 Single Responsibility**: Each package has one clear purpose
+- **📦 Flexible Dependencies**: Mix and match packages as needed
+- **🔧 Easy Maintenance**: Separate release cycles and dependencies
+- **⚡ Lighter Core**: Core package is now dependency-lean
+- **🚀 Better Testing**: Each package can be tested independently
+
+## [0.4.1] - 2025-08-15
+
+### BREAKING CHANGES (Superseded by 0.5.0)
+- **Dashboard Modules Removed**: Removed Phoenix LiveView dashboard components from core package to eliminate optional dependency issues
+- **Temporary State**: This was an intermediate release during package separation
+
 ## [0.3.7] - 2025-08-15
 
 ### Added

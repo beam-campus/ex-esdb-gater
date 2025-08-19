@@ -12,13 +12,16 @@ defmodule ExESDBGater.Messages.AuditMessages do
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_audit
 
   # Message payload structs
 
-  @doc "Data change audit event payload"
   defmodule DataChange do
+    @moduledoc """
+    Data change audit event payload
+    """
     defstruct [
     :user_id,        # string - user who made the change
     :resource_type,  # string - type of resource changed
@@ -32,8 +35,10 @@ defmodule ExESDBGater.Messages.AuditMessages do
   ]
   end
 
-  @doc "Administrative action audit event payload"
   defmodule AdminAction do
+    @moduledoc """
+    Administrative action audit event payload
+    """
     defstruct [
     :admin_user_id,  # string - administrator who performed action
     :action_type,    # :user_created | :user_deleted | :permissions_changed | :config_updated
@@ -46,8 +51,10 @@ defmodule ExESDBGater.Messages.AuditMessages do
   ]
   end
 
-  @doc "Access log audit event payload"
   defmodule AccessLog do
+    @moduledoc """
+    Access log audit event payload
+    """
     defstruct [
     :user_id,        # string - user who accessed resource
     :resource_type,  # string - type of resource accessed
@@ -62,8 +69,10 @@ defmodule ExESDBGater.Messages.AuditMessages do
   ]
   end
 
-  @doc "Compliance event audit payload"
   defmodule ComplianceEvent do
+    @moduledoc """
+    Compliance event audit payload
+    """
     defstruct [
     :event_type,     # :data_retention | :data_export | :data_deletion | :policy_violation
     :compliance_rule, # string - which rule this relates to
@@ -156,8 +165,8 @@ defmodule ExESDBGater.Messages.AuditMessages do
       changes: Keyword.get(opts, :changes, %{}),
       metadata: Keyword.get(opts, :metadata, %{}),
       source_ip: Keyword.get(opts, :source_ip),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -170,8 +179,8 @@ defmodule ExESDBGater.Messages.AuditMessages do
       details: Keyword.get(opts, :details, %{}),
       justification: Keyword.get(opts, :justification),
       source_ip: Keyword.get(opts, :source_ip),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -186,8 +195,8 @@ defmodule ExESDBGater.Messages.AuditMessages do
       duration_ms: Keyword.get(opts, :duration_ms),
       source_ip: Keyword.get(opts, :source_ip),
       user_agent: Keyword.get(opts, :user_agent),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -201,8 +210,8 @@ defmodule ExESDBGater.Messages.AuditMessages do
       user_id: Keyword.get(opts, :user_id),
       automated: Keyword.get(opts, :automated, false),
       metadata: Keyword.get(opts, :metadata, %{}),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 

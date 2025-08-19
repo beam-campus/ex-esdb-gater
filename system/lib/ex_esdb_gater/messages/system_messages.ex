@@ -8,27 +8,37 @@ defmodule ExESDBGater.Messages.SystemMessages do
   - "config" - System configuration changes
   - "lifecycle" - System startup/shutdown events  
   - "features" - Feature toggle changes
+
+  ## Node Field Pattern
+  All message structs include a `:node` field that tracks the originating node
+  using `Node.self()` as the default value.
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_system
 
   # Message payload structs
 
-  @doc "System configuration change payload"
   defmodule SystemConfig do
+    @moduledoc """
+    System configuration change payload
+    """
     defstruct [
       :component,      # atom - which component changed config
       :changes,        # map - what changed
       :previous_config, # map - previous configuration (optional)
       :timestamp,      # DateTime.t
-      :changed_by      # string - who/what triggered the change
+      :changed_by,     # string - who/what triggered the change
+      :node            # atom - node where config change originated
     ]
   end
 
-  @doc "System startup/shutdown payload"
   defmodule SystemLifecycle do
+    @moduledoc """
+    System startup/shutdown payload
+    """
     defstruct [
       :event,          # :starting | :started | :stopping | :stopped
       :system_name,    # atom - name of the system
@@ -38,14 +48,17 @@ defmodule ExESDBGater.Messages.SystemMessages do
     ]
   end
 
-  @doc "Feature toggle change payload"
   defmodule FeatureToggle do
+    @moduledoc """
+    Feature toggle change payload
+    """
     defstruct [
       :feature,        # atom - feature name
       :enabled,        # boolean - new state
       :previous_state, # boolean - previous state
       :changed_by,     # string - who changed it
-      :timestamp       # DateTime.t
+      :timestamp,      # DateTime.t
+      :node            # atom - node where toggle was changed
     ]
   end
 
@@ -119,31 +132,50 @@ defmodule ExESDBGater.Messages.SystemMessages do
       component: component,
       changes: changes,
       previous_config: Keyword.get(opts, :previous_config),
-      timestamp: DateTime.utc_now(),
-      changed_by: Keyword.get(opts, :changed_by, "system")
+      timestamp: MessageHelpers.current_timestamp(),
+      changed_by: Keyword.get(opts, :changed_by, "system"),
+      node: MessageHelpers.get_node(opts)
     }
   end
 
   @doc "Create a SystemLifecycle payload with current timestamp"
-  def system_lifecycle(event, system_name, version) do
+  def system_lifecycle(event, system_name, version, opts \\ []) do
     %SystemLifecycle{
       event: event,
       system_name: system_name,
       version: version,
-      node: Node.self(),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
   @doc "Create a FeatureToggle payload with current timestamp"
-  def feature_toggle(feature, enabled, previous_state, changed_by) do
+  def feature_toggle(feature, enabled, previous_state, changed_by, opts \\ []) do
     %FeatureToggle{
       feature: feature,
       enabled: enabled,
       previous_state: previous_state,
       changed_by: changed_by,
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp(),
+      node: MessageHelpers.get_node(opts)
     }
+  end
+
+  # Message validation functions
+  
+  @doc "Validate a SystemConfig message"
+  def validate_system_config(%SystemConfig{} = message) do
+    MessageHelpers.validate_common(message, [:component, :changes])
+  end
+  
+  @doc "Validate a SystemLifecycle message"
+  def validate_system_lifecycle(%SystemLifecycle{} = message) do
+    MessageHelpers.validate_common(message, [:event, :system_name, :version, :node])
+  end
+  
+  @doc "Validate a FeatureToggle message"
+  def validate_feature_toggle(%FeatureToggle{} = message) do
+    MessageHelpers.validate_common(message, [:feature, :enabled, :changed_by, :node])
   end
 
   # Private security functions
