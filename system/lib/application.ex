@@ -1,4 +1,4 @@
-defmodule ExESDBGater.App do
+defmodule ExESDBGater.Application do
   @moduledoc false
 
   use Application,

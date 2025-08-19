@@ -1,6 +1,5 @@
 defmodule ExESDB.Schema.NewEvent do
   @moduledoc false
-
   use Protobuf, protoc_gen_elixir_version: "0.14.1", syntax: :proto2
 
   field(:event_id, 1, required: true, type: :bytes, json_name: "eventId")

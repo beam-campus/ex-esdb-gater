@@ -31,7 +31,11 @@ defmodule ExESDBGater.Config do
   """
   @spec validate(config()) :: {:ok, gater_config()} | {:error, {atom(), term()}}
   def validate(config) when is_list(config) do
-    safe_normalize_config(config)
+    try do
+      normalize_config(config)
+    rescue
+      error -> {:error, {:validation_error, error}}
+    end
   end
 
   @doc """
@@ -191,28 +195,19 @@ defmodule ExESDBGater.Config do
 
   # Private functions
 
-  # Safe version of normalize_config that returns error tuples instead of raising
-  defp safe_normalize_config(config) do
-    with {:ok, cluster_mode} <- safe_cluster_mode(config),
-         {:ok, port} <- safe_port(config),
-         {:ok, max_connections} <- safe_max_connections(config),
-         {:ok, pool_size} <- safe_pool_size(config),
-         {:ok, use_libcluster} <- safe_use_libcluster(config),
-         {:ok, connection_retry_interval} <- safe_connection_retry_interval(config),
-         {:ok, health_check_interval} <- safe_health_check_interval(config),
-         {:ok, _} <- validate_libcluster_config(config) do
-      normalized = %{
-        cluster_mode: cluster_mode,
-        port: port,
-        max_connections: max_connections,
-        pool_size: pool_size,
-        use_libcluster: use_libcluster,
-        connection_retry_interval: connection_retry_interval,
-        health_check_interval: health_check_interval
-      }
+  defp normalize_config(config) do
+    normalized = %{
+      cluster_mode: cluster_mode?(config),
+      port: port(config),
+      max_connections: max_connections(config),
+      pool_size: pool_size(config),
+      use_libcluster: use_libcluster?(config),
+      connection_retry_interval: connection_retry_interval(config),
+      health_check_interval: health_check_interval(config)
+    }
+
+    with {:ok, _} <- validate_libcluster_config(config) do
       {:ok, normalized}
-    else
-      {:error, reason} -> {:error, {:validation_error, reason}}
     end
   end
 
@@ -221,127 +216,6 @@ defmodule ExESDBGater.Config do
       nil when is_binary(env_var) -> System.get_env(env_var)
       nil -> nil
       value -> value
-    end
-  end
-
-  # Safe helper functions that return error tuples instead of raising exceptions
-
-  defp safe_cluster_mode(config) do
-    case get_config_value(config, :cluster_mode, "EXESDB_GATER_CLUSTER_MODE") do
-      nil -> {:ok, false}
-      value when is_boolean(value) -> {:ok, value}
-      "true" -> {:ok, true}
-      "false" -> {:ok, false}
-      other -> {:error, "cluster_mode must be a boolean, got: #{inspect(other)}"}
-    end
-  end
-
-  defp safe_port(config) do
-    case get_config_value(config, :port, "EXESDB_GATER_PORT") do
-      nil ->
-        {:ok, 4001}
-
-      value when is_integer(value) and value > 0 and value <= 65_535 ->
-        {:ok, value}
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 and int_val <= 65_535 -> {:ok, int_val}
-          _ -> {:error, "port must be a valid port number (1-65535)"}
-        end
-
-      _other ->
-        {:error, "port must be a valid port number (1-65535)"}
-    end
-  end
-
-  defp safe_max_connections(config) do
-    case get_config_value(config, :max_connections, "EXESDB_GATER_MAX_CONNECTIONS") do
-      nil ->
-        {:ok, 1000}
-
-      value when is_integer(value) and value > 0 ->
-        {:ok, value}
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 -> {:ok, int_val}
-          _ -> {:error, "max_connections must be a positive integer"}
-        end
-
-      _other ->
-        {:error, "max_connections must be a positive integer"}
-    end
-  end
-
-  defp safe_pool_size(config) do
-    case get_config_value(config, :pool_size, "EXESDB_GATER_POOL_SIZE") do
-      nil ->
-        {:ok, 10}
-
-      value when is_integer(value) and value > 0 ->
-        {:ok, value}
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 -> {:ok, int_val}
-          _ -> {:error, "pool_size must be a positive integer"}
-        end
-
-      _other ->
-        {:error, "pool_size must be a positive integer"}
-    end
-  end
-
-  defp safe_use_libcluster(config) do
-    case get_config_value(config, :use_libcluster, "EXESDB_GATER_USE_LIBCLUSTER") do
-      nil -> {:ok, true}
-      value when is_boolean(value) -> {:ok, value}
-      "true" -> {:ok, true}
-      "false" -> {:ok, false}
-      other -> {:error, "use_libcluster must be a boolean, got: #{inspect(other)}"}
-    end
-  end
-
-  defp safe_connection_retry_interval(config) do
-    case get_config_value(
-           config,
-           :connection_retry_interval,
-           "EXESDB_GATER_CONNECTION_RETRY_INTERVAL"
-         ) do
-      nil ->
-        {:ok, 5000}
-
-      value when is_integer(value) and value > 0 ->
-        {:ok, value}
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 -> {:ok, int_val}
-          _ -> {:error, "connection_retry_interval must be a positive integer"}
-        end
-
-      _other ->
-        {:error, "connection_retry_interval must be a positive integer"}
-    end
-  end
-
-  defp safe_health_check_interval(config) do
-    case get_config_value(config, :health_check_interval, "EXESDB_GATER_HEALTH_CHECK_INTERVAL") do
-      nil ->
-        {:ok, 30_000}
-
-      value when is_integer(value) and value > 0 ->
-        {:ok, value}
-
-      value when is_binary(value) ->
-        case Integer.parse(value) do
-          {int_val, ""} when int_val > 0 -> {:ok, int_val}
-          _ -> {:error, "health_check_interval must be a positive integer"}
-        end
-
-      _other ->
-        {:error, "health_check_interval must be a positive integer"}
     end
   end
 end

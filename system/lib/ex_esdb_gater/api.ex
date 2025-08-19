@@ -19,10 +19,8 @@ defmodule ExESDBGater.API do
 
   ########### HELPER FUNCTIONS ############
   
-  @doc """
-    Waits for an available worker with exponential backoff retry logic.
-    This prevents Enum.EmptyError when no workers are available yet.
-  """
+  # Waits for an available worker with exponential backoff retry logic.
+  # This prevents Enum.EmptyError when no workers are available yet.
   defp wait_for_available_worker(worker_list_func, max_retries \\ 10, base_delay \\ 100) do
     wait_for_available_worker_retry(worker_list_func, 0, max_retries, base_delay)
   end

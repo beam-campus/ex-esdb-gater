@@ -17,10 +17,8 @@ defmodule ExESDBGater.Messages.HealthMessages do
 
   # Message payload structs
 
+  @doc "Node health status payload"
   defmodule NodeHealth do
-    @moduledoc """
-    Node health status payload
-    """
     defstruct [
     :node,           # atom - node name
     :status,         # :healthy | :degraded | :unhealthy | :unknown
@@ -32,10 +30,8 @@ defmodule ExESDBGater.Messages.HealthMessages do
   ]
   end
 
+  @doc "Cluster health overview payload"
   defmodule ClusterHealth do
-    @moduledoc """
-    Cluster health overview payload
-    """
     defstruct [
     :status,         # :healthy | :degraded | :unhealthy
     :healthy_nodes,  # integer - count of healthy nodes
@@ -47,10 +43,8 @@ defmodule ExESDBGater.Messages.HealthMessages do
   ]
   end
 
+  @doc "Component health status payload"
   defmodule ComponentHealth do
-    @moduledoc """
-    Component health status payload
-    """
     defstruct [
     :component,      # atom - component name
     :node,           # atom - node where component is running
@@ -61,10 +55,8 @@ defmodule ExESDBGater.Messages.HealthMessages do
   ]
   end
 
+  @doc "Health check result payload"
   defmodule HealthCheck do
-    @moduledoc """
-    Health check result payload
-    """
     defstruct [
     :check_name,     # atom - name of the health check
     :node,           # atom - node where check ran
@@ -168,18 +160,6 @@ defmodule ExESDBGater.Messages.HealthMessages do
   
   def broadcast_store_health(store_id, %HealthCheck{} = payload) when is_atom(store_id) do
     topic = store_health_topic(store_id)
-    broadcast_health_check(topic, payload)
-  end
-  
-  def broadcast_store_health(topic, %ComponentHealth{} = payload) when is_binary(topic) do
-    broadcast_component_health(topic, payload)
-  end
-  
-  def broadcast_store_health(topic, %NodeHealth{} = payload) when is_binary(topic) do
-    broadcast_node_health(topic, payload)
-  end
-  
-  def broadcast_store_health(topic, %HealthCheck{} = payload) when is_binary(topic) do
     broadcast_health_check(topic, payload)
   end
   

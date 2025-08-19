@@ -12,12 +12,12 @@ defmodule ExESDBGater.Messages.SecurityMessages do
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_security
 
   # Message payload structs
 
-  @doc "Authentication event payload"
   defmodule AuthEvent do
     defstruct [
     :user_id,        # string - user identifier
@@ -31,7 +31,6 @@ defmodule ExESDBGater.Messages.SecurityMessages do
   ]
   end
 
-  @doc "Access violation payload"
   defmodule AccessViolation do
     defstruct [
     :user_id,        # string - user identifier (if known)
@@ -45,7 +44,6 @@ defmodule ExESDBGater.Messages.SecurityMessages do
   ]
   end
 
-  @doc "Security alert payload"
   defmodule SecurityAlert do
     defstruct [
     :alert_type,     # :brute_force | :suspicious_activity | :policy_violation | :data_breach
@@ -59,7 +57,6 @@ defmodule ExESDBGater.Messages.SecurityMessages do
   ]
   end
 
-  @doc "Session event payload"
   defmodule SessionEvent do
     defstruct [
     :session_id,     # string - session identifier
@@ -149,9 +146,9 @@ defmodule ExESDBGater.Messages.SecurityMessages do
       auth_method: auth_method,
       source_ip: Keyword.get(opts, :source_ip),
       user_agent: Keyword.get(opts, :user_agent),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -165,7 +162,7 @@ defmodule ExESDBGater.Messages.SecurityMessages do
       source_ip: Keyword.get(opts, :source_ip),
       severity: Keyword.get(opts, :severity, :medium),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -177,9 +174,9 @@ defmodule ExESDBGater.Messages.SecurityMessages do
       description: description,
       affected_users: Keyword.get(opts, :affected_users, []),
       source_ip: Keyword.get(opts, :source_ip),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -191,8 +188,8 @@ defmodule ExESDBGater.Messages.SecurityMessages do
       event_type: event_type,
       duration_ms: Keyword.get(opts, :duration_ms),
       source_ip: Keyword.get(opts, :source_ip),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 

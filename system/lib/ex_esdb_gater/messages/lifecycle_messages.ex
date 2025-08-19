@@ -9,15 +9,20 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
   - "process_lifecycle" - Process start/stop/crash events
   - "supervision" - Supervisor tree events
   - "cluster_membership" - Cluster membership changes
+
+  ## Node Field Pattern
+  - Uses `:node` for events originating on a specific node
+  - Uses `:originating_node` for cluster membership events to distinguish
+    from affected nodes in the cluster change
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_lifecycle
 
   # Message payload structs
 
-  @doc "Node lifecycle event payload"
   defmodule NodeLifecycle do
     defstruct [
     :node,           # atom - node name
@@ -28,7 +33,6 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
   ]
   end
 
-  @doc "Process lifecycle event payload"
   defmodule ProcessLifecycle do
     defstruct [
     :pid,            # pid - process identifier
@@ -42,7 +46,6 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
   ]
   end
 
-  @doc "Supervision tree event payload"
   defmodule SupervisionEvent do
     defstruct [
     :supervisor,     # atom - supervisor name or pid
@@ -54,16 +57,16 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
   ]
   end
 
-  @doc "Cluster membership change payload"
   defmodule ClusterMembership do
     defstruct [
-    :event,          # :node_added | :node_removed | :partition_detected | :partition_healed
-    :affected_nodes, # [atom] - nodes affected by the change
-    :active_nodes,   # [atom] - currently active nodes
-    :total_nodes,    # integer - total nodes known to cluster
-    :quorum_status,  # :available | :lost
-    :timestamp       # DateTime.t
-  ]
+      :event,          # :node_added | :node_removed | :partition_detected | :partition_healed
+      :affected_nodes, # [atom] - nodes affected by the change
+      :active_nodes,   # [atom] - currently active nodes
+      :total_nodes,    # integer - total nodes known to cluster
+      :quorum_status,  # :available | :lost
+      :timestamp,      # DateTime.t
+      :originating_node # atom - node that originated this membership event
+    ]
   end
 
   # Broadcasting helpers
@@ -142,7 +145,7 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
       event: event,
       cluster_size: cluster_size,
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -153,10 +156,10 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
       name: Keyword.get(opts, :name),
       module: module,
       event: event,
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       reason: Keyword.get(opts, :reason),
       restart_count: Keyword.get(opts, :restart_count, 0),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -166,9 +169,9 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
       supervisor: supervisor,
       child_spec: child_spec,
       event: event,
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       reason: Keyword.get(opts, :reason),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -180,7 +183,8 @@ defmodule ExESDBGater.Messages.LifecycleMessages do
       active_nodes: active_nodes,
       total_nodes: Keyword.get(opts, :total_nodes, length(active_nodes)),
       quorum_status: Keyword.get(opts, :quorum_status, :available),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp(),
+      originating_node: MessageHelpers.get_originating_node(opts)
     }
   end
 

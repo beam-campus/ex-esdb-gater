@@ -19,6 +19,25 @@ defmodule ExESDBGater.Messages do
   - `DiagnosticsMessages` - Deep diagnostic and debugging info (`:ex_esdb_diagnostics`)
   - `LoggingMessages` - Log aggregation and distribution (`:ex_esdb_logging`)
 
+  ## Consistent Node Tracking Pattern
+
+  All message structs now include consistent node tracking fields to support
+  distributed troubleshooting and monitoring:
+
+  - **`:node`** - Standard field for most messages, tracks the originating node
+  - **`:originating_node`** - Used in cluster membership events to distinguish
+    from affected nodes in the event
+  - **`:reporting_node`** - Used in metrics/monitoring where the reporter may
+    differ from the event source
+
+  All message creation functions use `MessageHelpers.get_node(opts)` which
+  defaults to `Node.self()` but can be overridden via options.
+
+  ## Standardized Timestamps
+
+  All messages use `MessageHelpers.current_timestamp()` which provides
+  millisecond-precision UTC timestamps for consistency across the cluster.
+
   ## Usage Examples
 
       # Using system messages

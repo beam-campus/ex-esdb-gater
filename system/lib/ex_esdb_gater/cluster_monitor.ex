@@ -79,7 +79,7 @@ defmodule ExESDBGater.ClusterMonitor do
     new_connected = MapSet.put(updated_state.connected_nodes, node)
     final_state = %{updated_state | connected_nodes: new_connected}
     
-    # Broadcast cluster state change for dashboard
+    # Broadcast cluster state change for external consumers (dashboards, monitoring, etc.)
     broadcast_cluster_state_change(:nodeup, node, is_ex_esdb, final_state)
     
     {:noreply, final_state}
@@ -106,7 +106,7 @@ defmodule ExESDBGater.ClusterMonitor do
     new_connected = MapSet.delete(state.connected_nodes, node)
     final_state = %{state | connected_nodes: new_connected, node_type_cache: updated_cache}
     
-    # Broadcast cluster state change for dashboard
+    # Broadcast cluster state change for external consumers (dashboards, monitoring, etc.)
     broadcast_cluster_state_change(:nodedown, node, was_ex_esdb, final_state)
 
     {:noreply, final_state}
@@ -209,16 +209,14 @@ defmodule ExESDBGater.ClusterMonitor do
       timestamp: DateTime.utc_now()
     }
 
-    # Broadcast to dashboard subscribers
-    try do
-      Phoenix.PubSub.broadcast(
-        pubsub_server(),
-        "ex_esdb_gater:cluster",
-        {:cluster_state_changed, cluster_state}
-      )
-    rescue
-      error -> 
-        Logger.debug("Failed to broadcast cluster state change: #{inspect(error)}")
+    # Broadcast using consistent topic pattern
+    topic = ExESDBGater.Topics.cluster_topology()
+    
+    case Phoenix.PubSub.broadcast(pubsub_server(), topic, {:cluster_state_changed, cluster_state}) do
+      :ok ->
+        Logger.debug("Broadcasted cluster state change to #{topic}")
+      {:error, reason} ->
+        Logger.debug("Failed to broadcast cluster state change: #{inspect(reason)}")
     end
   end
 

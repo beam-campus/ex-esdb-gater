@@ -12,13 +12,16 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_diagnostics
 
   # Message payload structs
 
-  @doc "Debug trace payload"
   defmodule DebugTrace do
+    @moduledoc """
+    Debug trace payload
+    """
     defstruct [
     :trace_id,       # string - unique trace identifier
     :component,      # atom - component being traced
@@ -32,8 +35,10 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
   ]
   end
 
-  @doc "Performance analysis payload"
   defmodule PerformanceAnalysis do
+    @moduledoc """
+    Performance analysis payload
+    """
     defstruct [
     :analysis_id,    # string - unique analysis identifier
     :component,      # atom - component being analyzed
@@ -46,8 +51,10 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
   ]
   end
 
-  @doc "System state snapshot payload"
   defmodule SystemState do
+    @moduledoc """
+    System state snapshot payload
+    """
     defstruct [
     :snapshot_id,    # string - unique snapshot identifier
     :snapshot_type,  # :full | :partial | :process_tree | :memory_dump
@@ -60,8 +67,10 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
   ]
   end
 
-  @doc "Error analysis payload"
   defmodule ErrorAnalysis do
+    @moduledoc """
+    Error analysis payload
+    """
     defstruct [
     :error_id,       # string - unique error identifier
     :error_type,     # atom - type of error
@@ -154,9 +163,9 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
       trace_data: trace_data,
       stack_trace: Keyword.get(opts, :stack_trace),
       duration_ms: Keyword.get(opts, :duration_ms),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -169,8 +178,8 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
       findings: findings,
       recommendations: Keyword.get(opts, :recommendations, []),
       severity: Keyword.get(opts, :severity, :medium),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -182,15 +191,15 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
       state_data: state_data,
       process_count: Keyword.get(opts, :process_count),
       memory_usage: Keyword.get(opts, :memory_usage),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       trigger_reason: trigger_reason,
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
   @doc "Create an ErrorAnalysis payload with current timestamp"
   def error_analysis(error_type, error_message, opts \\ []) do
-    now = DateTime.utc_now()
+    now = MessageHelpers.current_timestamp()
     
     %ErrorAnalysis{
       error_id: Keyword.get(opts, :error_id, generate_error_id()),
@@ -201,7 +210,7 @@ defmodule ExESDBGater.Messages.DiagnosticsMessages do
       frequency: Keyword.get(opts, :frequency, 1),
       first_seen: Keyword.get(opts, :first_seen, now),
       last_seen: Keyword.get(opts, :last_seen, now),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       timestamp: now
     }
   end

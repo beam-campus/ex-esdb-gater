@@ -12,12 +12,12 @@ defmodule ExESDBGater.Messages.LoggingMessages do
   """
 
   alias Phoenix.PubSub
+  alias ExESDBGater.MessageHelpers
 
   @pubsub_instance :ex_esdb_logging
 
   # Message payload structs
 
-  @doc "Log entry payload"
   defmodule LogEntry do
     defstruct [
     :log_id,         # string - unique log identifier
@@ -33,7 +33,6 @@ defmodule ExESDBGater.Messages.LoggingMessages do
   ]
   end
 
-  @doc "Log aggregation summary payload"
   defmodule LogSummary do
     defstruct [
     :summary_id,     # string - unique summary identifier
@@ -47,7 +46,6 @@ defmodule ExESDBGater.Messages.LoggingMessages do
   ]
   end
 
-  @doc "Log filtering rule payload"
   defmodule LogFilter do
     defstruct [
     :filter_id,      # string - unique filter identifier
@@ -61,7 +59,6 @@ defmodule ExESDBGater.Messages.LoggingMessages do
   ]
   end
 
-  @doc "Log rotation event payload"
   defmodule LogRotation do
     defstruct [
     :rotation_id,    # string - unique rotation identifier
@@ -153,10 +150,10 @@ defmodule ExESDBGater.Messages.LoggingMessages do
       module: module,
       function: Keyword.get(opts, :function),
       line: Keyword.get(opts, :line),
-      node: Keyword.get(opts, :node, Node.self()),
+      node: MessageHelpers.get_node(opts),
       pid: Keyword.get(opts, :pid, self()),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -170,7 +167,7 @@ defmodule ExESDBGater.Messages.LoggingMessages do
       error_rate: Keyword.get(opts, :error_rate, 0.0),
       nodes_reporting: Keyword.get(opts, :nodes_reporting, [Node.self()]),
       total_logs: Keyword.get(opts, :total_logs, Enum.sum(Map.values(log_counts))),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -184,7 +181,7 @@ defmodule ExESDBGater.Messages.LoggingMessages do
       enabled: Keyword.get(opts, :enabled, true),
       created_by: Keyword.get(opts, :created_by, "system"),
       metadata: Keyword.get(opts, :metadata, %{}),
-      timestamp: DateTime.utc_now()
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
@@ -197,8 +194,8 @@ defmodule ExESDBGater.Messages.LoggingMessages do
       new_file: new_file,
       file_size: Keyword.get(opts, :file_size),
       entries_count: Keyword.get(opts, :entries_count),
-      node: Keyword.get(opts, :node, Node.self()),
-      timestamp: DateTime.utc_now()
+      node: MessageHelpers.get_node(opts),
+      timestamp: MessageHelpers.current_timestamp()
     }
   end
 
