@@ -21,6 +21,8 @@ defmodule ExESDBGater.System do
         {ExESDBGater.ClusterMonitor, opts},
         # Start PubSub system
         {ExESDBGater.PubSubSystem, opts},
+        # Start Telemetry for monitoring and observability
+        {ExESDBGater.Telemetry, opts},
         {ExESDBGater.API, opts}
       ]
       # Remove nil entries
